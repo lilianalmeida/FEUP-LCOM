@@ -32,18 +32,18 @@ int main(int argc, char *argv[]) {
 
 int(timer_test_read_config)(uint8_t timer, enum timer_status_field field) {
   /* To be completed by the students */
-	unsigned long st;
+	uint8_t st;
 	
-	int returnValue = timer_get_conf(timer, &st);
-	if (returnValue != 0) {
+	int erro = timer_get_conf(timer, &st);
+	if (erro != 0) {
 		printf("Error in timer_get_conf", 0);
-		return returnValue;
+		return erro;
 	}
 
-	returnValue = timer_display_conf(timer, st, field);
-	if (returnValue != 0) {
+	erro = timer_display_conf(timer, st, field);
+	if (erro != 0) {
 		printf("Error in timer_display_conf", 0);
-		return returnValue;
+		return erro;
 	}
 
   return 0;

@@ -33,38 +33,48 @@ void (timer_int_handler)() {
   printf("%s is not yet implemented!\n", __func__);
 }
 
+
+//// 7.1 ////
 int (timer_get_conf)(uint8_t timer, uint8_t *st) {
 	/* To be completed by the students */
 	if (timer > 2 || timer < 0)
 		return -1;
 
-	char readBack = TIMER_RB_CMD | TIMER_RB_SEL(timer) | TIMER_RB_COUNT_;
+	uint32_t rbc = TIMER_RB_CMD | TIMER_RB_SEL(timer) | TIMER_RB_COUNT_;
 
-	int returnValue = sys_outb(TIMER_CTRL, readBack);
-	if (returnValue != 0) {
+	int erro = sys_outb(TIMER_CTRL, rbc);
+	if (erro != 0) {
 		printf("Error in sys_outb");
-		return returnValue;
+		return erro;
 	}
 
-	unsigned long stLong;
-	returnValue = sys_inb(TIMER_0 + timer, &stLong);
-	if (returnValue != 0) {
+	uint32_t st32;
+
+	erro = sys_inb(TIMER_0 + timer, &st32);
+	if (erro != 0) {
 		printf("Error in sys_inb");
-		return returnValue;
+		return erro;
 	}
 
-	*st = stLong;
+	*st = (uint8_t) st32;
+
 	return 0;
 
 }
 
+
 int (timer_display_conf)(uint8_t timer, uint8_t st, enum timer_status_field field) {
  
-	timer_status_field_val uni = {};
-	timer_print_config(timer, field,uni);
+
+	union timer_status_field_val uni;
+	uni.byte = st;
+
+	int erro = timer_print_config(timer, field, uni);
+	if (erro != 0) {
+		printf("Error in sys_inb");
+		return erro;
+	}
 	
 	/* To be completed by the students */
-  printf("%s is not yet implemented!\n", __func__);
-
   return 1;
 }
