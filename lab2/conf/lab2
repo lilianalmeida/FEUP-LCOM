@@ -18,6 +18,7 @@ service lab2
                 ;
         io
                 40:4      # Timer
+                61
                 60        # KBC
                 64        # KBC
                 70:2      # RTC
