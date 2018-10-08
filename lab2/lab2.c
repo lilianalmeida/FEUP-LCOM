@@ -30,6 +30,7 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
+//// 7.1 ////
 int(timer_test_read_config)(uint8_t timer, enum timer_status_field field) {
     /* To be completed by the students */
     uint8_t st;
@@ -49,13 +50,22 @@ int(timer_test_read_config)(uint8_t timer, enum timer_status_field field) {
     return 0;
 }
 
-int(timer_test_time_base)(uint8_t UNUSED(timer), uint32_t UNUSED(freq)) {
-    /* To be completed by the students */
-    printf("%s is not yet implemented!\n", __func__);
+
+//// 7.2 ////
+int(timer_test_time_base)(uint8_t timer, uint32_t freq) {
     
-    return 1;
+  int erro = timer_set_frequency(timer, freq);
+    if (erro != 0) {
+        printf("Error in timer_set_frequency", 0);
+        return erro;
+    }
+
+    return 0;
 }
 
+
+
+//// 7.3 ////
 int(timer_test_int)(uint8_t UNUSED(time)) {
     /* To be completed by the students */
     printf("%s is not yet implemented!\n", __func__);
@@ -63,13 +73,14 @@ int(timer_test_int)(uint8_t UNUSED(time)) {
     return 1;
 }
 
+
+//// 7.2 ////
 int(util_get_LSB)(uint16_t val, uint8_t *lsb) {
     
     val = val << 8;
     val = val >> 8;
 
     *lsb = val;   
-    
     
     return 0;
 }
@@ -80,7 +91,6 @@ int(util_get_MSB)(uint16_t val, uint8_t *msb) {
     val = val << 8;
     
     *msb = val;   
-    
     
     return 0;
 }
