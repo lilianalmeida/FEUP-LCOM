@@ -19,15 +19,16 @@ int (timer_set_frequency)(uint8_t timer, uint32_t freq) {
 	uint8_t msb, lsb;
 	
 	uint32_t div = TIMER_FREQ/ freq;
-	sys_inb(timer_ctrl,&control_byte);
+	sys_inb(TIMER_CTRL,&control_byte);
 
-	util_get_LSB(control_byte, &lsb);
-	util_get_MSB(control_byte, &msb);
+	util_get_LSB(div, &lsb);
+	util_get_MSB(div, &msb);
 
-	control_byte = (control_byte & 0x0f) | timer_rb_sel(timer) | TIMER_LSB_MSB;
-	sys_outb(timer_ctrl, control_byte);
-	sys_outb(timer_0 + timer, lsb);
-	sys_outb(timer_0 + timer, msb);
+	control_byte = (control_byte & 0x0f) | TIMER_RB_SEL(timer) | TIMER_LSB_MSB;
+	
+	sys_outb(TIMER_CTRL, control_byte);
+	sys_outb(TIMER_0 + timer, lsb);
+	sys_outb(TIMER_0 + timer, msb);
 
 
   return 0;
@@ -36,7 +37,7 @@ int (timer_set_frequency)(uint8_t timer, uint32_t freq) {
 
 
 //// 7.3 ////
-int (timer_subscribe_int)(uint8_t *unused(bit_no)) {
+int (timer_subscribe_int)(uint8_t *UNUSED(bit_no)) {
   /* to be completed by the students */
 
 
@@ -65,9 +66,9 @@ int (timer_get_conf)(uint8_t timer, uint8_t *st) {
 	if (timer > 2 || timer < 0)
 		return 1;
 
-	uint32_t rbc = timer_rb_cmd | timer_rb_sel(timer) | timer_rb_count_; //read back command
+	uint32_t rbc = TIMER_RB_CMD | TIMER_RB_SEL(timer) | TIMER_RB_COUNT_; //read back command
 
-	int erro = sys_outb(timer_ctrl, rbc);
+	int erro = sys_outb(TIMER_CTRL, rbc);
 	if (erro != 0) {
 		printf("error in sys_outb");
 		return erro;
@@ -75,7 +76,7 @@ int (timer_get_conf)(uint8_t timer, uint8_t *st) {
 
 	uint32_t st32; //
 
-	erro = sys_inb(timer_0 + timer, &st32);
+	erro = sys_inb(TIMER_0 + timer, &st32);
 	if (erro != 0) {
 		printf("error in sys_inb");
 		return erro;
@@ -98,13 +99,13 @@ int (timer_display_conf)(uint8_t timer, uint8_t st, enum timer_status_field fiel
             uni.byte = st;
             break;
         case initial:
-            uni.in_mode = (st & (bit(5) | bit(4))) >> 4;
+            uni.in_mode = (st & (BIT(5) | BIT(4))) >> 4;
             break;
         case mode:
-            uni.count_mode = (st & (bit(3) | bit(2) | bit(1))) >> 1;
+            uni.count_mode = (st & (BIT(3) | BIT(2) | BIT(1))) >> 1;
              break;
         case base:
-            uni.bcd = st & bit(0);
+            uni.bcd = st & BIT(0);
             break;
     }	
 	
