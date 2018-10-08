@@ -67,13 +67,33 @@ int (timer_display_conf)(uint8_t timer, uint8_t st, enum timer_status_field fiel
  
 
 	union timer_status_field_val uni;
-	uni.byte = st;
-
+	
+	
+	
+	switch(field)
+    {
+        case all:
+            uni.byte = st;
+            break;
+        case initial:
+            uni.byte = st >> 4 & (BIT(1) | BIT(0));
+            break;
+        case mode:
+            uni.byte = st >> 1 & (BIT(2) | BIT(1) | BIT(0));
+             break;
+        case base:
+            uni.byte = st & BIT(0);
+            break;
+    }	
+	
 	int erro = timer_print_config(timer, field, uni);
 	if (erro != 0) {
 		printf("Error in sys_inb");
 		return erro;
 	}
+	
+	
+	
 	
 	/* To be completed by the students */
   return 0;
