@@ -69,20 +69,19 @@ int (timer_display_conf)(uint8_t timer, uint8_t st, enum timer_status_field fiel
 	union timer_status_field_val uni;
 	
 	
-	
 	switch(field)
     {
         case all:
             uni.byte = st;
             break;
         case initial:
-            uni.byte = st >> 4 & (BIT(1) | BIT(0));
+            uni.in_mode = (st & (BIT(5) | BIT(4))) >> 4;
             break;
         case mode:
-            uni.byte = st >> 1 & (BIT(2) | BIT(1) | BIT(0));
+            uni.count_mode = (st & (BIT(3) | BIT(2) | BIT(1))) >> 1;
              break;
         case base:
-            uni.byte = st & BIT(0);
+            uni.bcd = st & BIT(0);
             break;
     }	
 	
@@ -94,7 +93,5 @@ int (timer_display_conf)(uint8_t timer, uint8_t st, enum timer_status_field fiel
 	
 	
 	
-	
-	/* To be completed by the students */
   return 0;
 }
