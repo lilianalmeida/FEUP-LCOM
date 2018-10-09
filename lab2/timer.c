@@ -15,21 +15,45 @@ int (timer_set_frequency)(uint8_t timer, uint32_t freq) {
 	//if(freq < 0)
 	//	return 1;
 
-	uint32_t control_byte;
-	uint8_t msb, lsb;
-	
-	uint32_t div = TIMER_FREQ/ freq;
-	sys_inb(TIMER_CTRL,&control_byte);
+    
+    
+	uint8_t control_byte;
+	uint8_t msb, lsb, st;
+    
+      int erro = timer_get_conf(timer, &st);
+    if (erro != 0) {
+        printf("Error in timer_get_conf", 0);
+        return erro;
+    }
+    
+    
+	uint16_t div = TIMER_FREQ/ freq;
+
 
 	util_get_LSB(div, &lsb);
 	util_get_MSB(div, &msb);
 
-	control_byte = (control_byte & 0x0f) | TIMER_RB_SEL(timer) | TIMER_LSB_MSB;
+	control_byte = (st & 0x0f) | TIMER_RB_SEL(timer) | TIMER_LSB_MSB;
 	
-	sys_outb(TIMER_CTRL, control_byte);
-	sys_outb(TIMER_0 + timer, lsb);
-	sys_outb(TIMER_0 + timer, msb);
 
+    
+      erro = sys_outb(TIMER_CTRL, control_byte);
+    if (erro != 0) {
+        printf("Error in sys_outb", 0);
+        return erro;
+    }
+
+        erro = 	sys_outb(TIMER_0 + timer, lsb);
+    if (erro != 0) {
+        printf("Error in sys_outb", 0);
+        return erro;
+    }
+
+        erro = 	sys_outb(TIMER_0 + timer, msb);
+    if (erro != 0) {
+        printf("Error in sys_outb", 0);
+        return erro;
+    }
 
   return 0;
 }

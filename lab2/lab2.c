@@ -76,11 +76,9 @@ int(timer_test_int)(uint8_t UNUSED(time)) {
 
 //// 7.2 ////
 int(util_get_LSB)(uint16_t val, uint8_t *lsb) {
-    
-    val = val << 8;
-    val = val >> 8;
 
-    *lsb = val;   
+
+    *lsb = (uint8_t)val;   
     
     return 0;
 }
@@ -88,9 +86,8 @@ int(util_get_LSB)(uint16_t val, uint8_t *lsb) {
 int(util_get_MSB)(uint16_t val, uint8_t *msb) {
    
      val = val >> 8;
-    val = val << 8;
-    
-    *msb = val;   
+
+    *msb = (uint8_t)val;   
     
     return 0;
 }
