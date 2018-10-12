@@ -54,6 +54,7 @@
 #define TIMER_RB_SEL(n)         BIT((n)+1)
 
 
+extern uint32_t counter;
 /**@}*/
 
 #endif /* _LCOM_I8254_H */
