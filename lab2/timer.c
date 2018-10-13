@@ -6,7 +6,7 @@
 #include "i8254.h"
 
 //global variable
-int hook_id;
+int hook_id = 0x00;
 
 
 //// 7.2 ////
