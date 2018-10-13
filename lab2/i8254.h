@@ -52,9 +52,8 @@
 #define TIMER_RB_COUNT_         BIT(5)
 #define TIMER_RB_STATUS_        BIT(4)
 #define TIMER_RB_SEL(n)         BIT((n)+1)
-
-
-extern uint32_t counter;
 /**@}*/
+
+extern uint32_t counter; //global variable
 
 #endif /* _LCOM_I8254_H */
