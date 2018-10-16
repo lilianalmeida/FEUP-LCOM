@@ -10,18 +10,15 @@ uint32_t counter =0;
 
 int sys_inb_count (port_t port, uint32_t *byte){
 
-	#define LAB3
-	int erro = sys_inb (port,byte);
-	#ifdef LAB3
 	counter++;
-	#endif
+	return sys_inb (port,byte);
 }
 
 
 
 int (keyboard_subscribe)(uint8_t * bit_no) {
 
-	int erro = sys_irqsetpolicy(TIMER0_IRQ, IRQ_REENABLE | IQR_EXCLUSIVE, &keyboard_id);
+	int erro = sys_irqsetpolicy(KEYBOARD_IRQ, IRQ_REENABLE | IRQ_EXCLUSIVE, &keyboard_id);
 	if (erro != OK) {
 		printf("Error in sys_irqsetpolicy", 0);
 		return erro;
@@ -43,56 +40,56 @@ int (keyboard_unsubscribe)() {
 	return 0;
 }
 
-int (keyboard_handler)(uint32_t *scancode, uint8_t *nbyte) { //reads the bytes from the KBC's OUT_BUF (one byte per interrupt)
+int (keyboard_handler)(uint32_t *byte) { //reads the bytes from the KBC's OUT_BUF (one byte per interrupt)
+	uint32_t stat = 0;
+	
+	while(1) {
+		#ifdef LAB3
+		sys_inb_count(STAT_REG, &stat);
+		#else
+		#define sys_inb_cnt(p,q) sys_inb(p,q)
+		#endif
 
-	while( stat & OBF ) {
-	sys_inb_count(STAT_REG, &stat); /* assuming it returns OK */
+		sys_inb_count(STAT_REG, &stat); /* assuming it returns OK */ //verificar eroo??
 							/* loop while 8042 output buffer is empty */
 		if( stat & OBF ) {
-			sys_inb_count(OUT_BUF, scancode); /* assuming it returns OK */
-			if ( (stat &(PAR_ERR | TO_ERR)) == 0 ){
-				if ((*scancode && TWO_BYTE_SCANCODE)==TWO_BYTE_SCANCODE){
-					*nbyte = 2;
-					return 0;
-				}
-				else {
-					*nbyte = 1;
-					return 0;
-				}
-			}
-			else
+			#ifdef LAB3
+			sys_inb_count(OUT_BUF, byte); /* assuming it returns OK */ //verificar eroo??#else
+			#define sys_inb_cnt(p,q) sys_inb(p,q)
+			#endif
+
+			if ( (stat &(PAR_ERR | TO_ERR)) != 0 ){
 				return 1;
+			}
+			/*else
+				return 1;*/
 		}
-		delay(WAIT_KBC);
+		tickdelay (micros_to_ticks (WAIT_KBC));
+		//delay(WAIT_KBC);
 	}
 	return 0;
 }
 
-int (scancode_parse)(uint32_t scancode, uint8_t nbyte){
+int (scancode_parse)(uint32_t byte, uint8_t nbyte){
 
-	int erro;
-	uint8_t byte [nbyte];
-	uint8_t first_byte = (uint8_t) scancode;
-	byte [0] = first_byte;
+	uint8_t scancode [nbyte];
 
 	if (nbyte == 2){
-		uint8_t second_byte = (uint8_t) (scancode >> 8);
-		byte [1] = second_byte;
-		erro = kbd_print_scancode (bool (BIT(15) & scancode), nbyte, byte)
-		if (erro != OK){
-			printf("Error in kbd_print_scancode", 0);
-			return erro;
-		}
+		scancode [0] = TWO_BYTE_SCANCODE;
+		scancode [1] = (uint8_t) byte;
+
 	}
 	else
-		erro = kbd_print_scancode (bool (BIT(7) & scancode), nbyte, byte);
-	if (erro != OK){
+	{
+		scancode [0] = (uint8_t) byte;
+	}
+
+	int erro = kbd_print_scancode ((BIT(7) & byte) >> 7, nbyte, scancode);
+		if (erro != OK){
 			printf("Error in kbd_print_scancode", 0);
 			return erro;
 		}
 
 return 0;
 }
-
-
 
