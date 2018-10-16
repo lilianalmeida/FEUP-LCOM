@@ -30,10 +30,10 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 
-int (kbd_test_scan)(bool UNUSED(assembly)) {
+int (kbd_test_scan)(bool assembly) {
 
   if (assembly != 0 && assembly != 1){
-    printf("Assembly not valid in kbd_test_scan", 0)
+    printf("Assembly not valid in kbd_test_scan", 0);
     return 1;
   }
 
@@ -49,10 +49,11 @@ int (kbd_test_scan)(bool UNUSED(assembly)) {
   int ipc_status;
   message msg;
   uint32_t irq_set = bit_no;
-  uint32_t scancode = 0;
-  uint8_t nbyte = 0;
+  uint32_t byte = 0;
+  uint8_t nbyte = 0; //numero de bytes do scancode
+  bool wait = false;
 
-  while (scancode != ESC_CODE) {
+  while (byte != ESC_CODE) {
     /* Get a request message. */
     if ((erro = driver_receive(ANY, &msg, &ipc_status)) != 0) {
       printf("Driver_receive failed with: %d", erro);
@@ -64,32 +65,50 @@ int (kbd_test_scan)(bool UNUSED(assembly)) {
     switch (_ENDPOINT_P(msg.m_source)) {
       case HARDWARE: /* hardware interrupt notification */
         if (msg.m_notify.interrupts & irq_set) { /* subscribed interrupt */
+      
       if (assembly == 0){
-        keyboard_handler(&scancode, &nbyte);
-        erro = scancode_parse (scancode, nbyte);
-        //ver erro
+        keyboard_handler(&byte);
+        
+        if (wait == false){
+          if (byte == TWO_BYTE_SCANCODE){
+            wait = true;
+            continue;
+          }
+          else{
+            nbyte = 1;
+          }
+        }
+        else{
+          nbyte = 2;
+          wait = false;
+        }
+
+        erro = scancode_parse (byte, nbyte);
+        if(erro != OK)//ver erro
+        return erro;
+        
 
       }
-          if (assembly == 1) //something
+          if (assembly == 1) //do something
 
-        }
       tickdelay (micros_to_ticks (WAIT_KBC));
     }
     break;
 
     default:
         break; /* no other notifications expected: do nothing */
-  }
-
-    } else { /* received a standard message, not a notification */
+}
+}
+     else { /* received a standard message, not a notification */
       /* no standard messages expected: do nothing */
+  }
 }
 
 
 
   if (assembly == 0){
     erro = kbd_print_no_sysinb (counter);
-    //ver erro
+    return erro;
   }
 
   erro=keyboard_unsubscribe();
@@ -98,13 +117,16 @@ int (kbd_test_scan)(bool UNUSED(assembly)) {
     return erro;
   }
 
+  return 0;
 }
 
 
 int (kbd_test_poll)() {
       /* To be completed */
+  return 0;
 }
 int (kbd_test_timed_scan)(uint8_t UNUSED(n)) {
       /* To be completed */
       /* When you use argument n for the first time, delete the UNUSED macro */
+  return 0;
 }
