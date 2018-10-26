@@ -1,10 +1,12 @@
-  #include <lcom/timer.h>
+  #include <lcom/lcf.h>
 
+  #include <lcom/timer.h>
   #include <stdbool.h>
   #include <stdint.h>
 
-  #include "lab3.h"
   #include "keyboard.h"
+  
+  uint32_t scanByte = 0;
 
 int main(int argc, char *argv[]) {
     // sets the language of LCF messages (can be either EN-US or PT-PT)
@@ -39,21 +41,23 @@ int (kbd_test_scan)(bool assembly) {
 
 
   uint8_t bit_no = 1;
+  uint32_t irq_set = BIT (bit_no);
 
   int erro=keyboard_subscribe(&bit_no);
   if (erro != OK) {
     printf("Error in keyboard_subscribe", 0);
     return erro;
   }
+  
 
   int ipc_status;
   message msg;
-  uint32_t irq_set = bit_no;
-  uint32_t byte = 0;
+ 
+  
   uint8_t nbyte = 0; //numero de bytes do scancode
   bool wait = false;
 
-  while (byte != ESC_CODE) {
+  while (scanByte != ESC_CODE) {
     /* Get a request message. */
     if ((erro = driver_receive(ANY, &msg, &ipc_status)) != 0) {
       printf("Driver_receive failed with: %d", erro);
@@ -67,10 +71,10 @@ int (kbd_test_scan)(bool assembly) {
         if (msg.m_notify.interrupts & irq_set) { /* subscribed interrupt */
       
       if (assembly == 0){
-        keyboard_handler(&byte);
+        kbc_ih();
         
         if (wait == false){
-          if (byte == TWO_BYTE_SCANCODE){
+          if (scanByte == TWO_BYTE_SCANCODE){
             wait = true;
             continue;
           }
@@ -83,15 +87,15 @@ int (kbd_test_scan)(bool assembly) {
           wait = false;
         }
 
-        erro = scancode_parse (byte, nbyte);
+        erro = scancode_parse (scanByte, nbyte);
         if(erro != OK)//ver erro
         return erro;
         
 
       }
-          if (assembly == 1) //do something
+          else if (assembly == 1) //do something
 
-      tickdelay (micros_to_ticks (WAIT_KBC));
+      tickdelay (micros_to_ticks (DELAY_US));
     }
     break;
 
@@ -130,3 +134,36 @@ int (kbd_test_timed_scan)(uint8_t UNUSED(n)) {
       /* When you use argument n for the first time, delete the UNUSED macro */
   return 0;
 }
+
+void (kbc_ih)(void){
+  
+  uint32_t stat = 0;
+  
+  while(1) {
+
+    sys_inb_count(STAT_REG, &stat);
+
+
+   /* assuming it returns OK */ //verificar eroo??
+              /* loop while 8042 output buffer is empty */
+    if( stat & OBF ) {
+
+      sys_inb_count(OUT_BUF, &scanByte); /* assuming it returns OK */ //verificar eroo??#else
+
+
+      if ( (stat &(PAR_ERR | TO_ERR)) != 0 ){
+        printf("There was an error",0);
+      }
+      else
+        return;
+    }
+    tickdelay (micros_to_ticks (DELAY_US));
+  }
+}
+
+ void (kbc_asm_ih)(void){
+   
+   
+   
+ }
+
