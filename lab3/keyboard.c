@@ -1,6 +1,6 @@
 #include <lcom/lcf.h>
-
 #include <lcom/timer.h>
+
 #include <stdint.h>
 #include "keyboard.h"
 
@@ -19,7 +19,6 @@ int (sys_inb_count) (port_t port, uint32_t *byte){
 
 int (keyboard_subscribe)(uint8_t * bit_no) {
 
-	hook_id = 1;
 	*bit_no = hook_id;
 
 	int erro = sys_irqsetpolicy(KEYBOARD_IRQ, (IRQ_REENABLE | IRQ_EXCLUSIVE), &hook_id);
@@ -27,8 +26,6 @@ int (keyboard_subscribe)(uint8_t * bit_no) {
 		printf("Error in sys_irqsetpolicy", 0);
 		return erro;
 	}
-	
-
 	return 0;
 }
 
@@ -47,11 +44,11 @@ int (keyboard_unsubscribe)() {
 int (kbc_pol)() {
 	uint32_t stat = 0;
   	int numCiclos = 0;
-  
+
   while(numCiclos <= 5) {
 
-    sys_inb_count(STAT_REG, &stat); 
-      
+    sys_inb_count(STAT_REG, &stat);
+
     if( stat & OBF ) {
 
       sys_inb_count(OUT_BUF, &scanByte);
@@ -106,3 +103,21 @@ int (interrupt_handler)(){
 
 }
 
+
+void (isTwoByte)(bool *wait, uint8_t *nbyte){
+
+	if (*wait == false){
+		if (scanByte == TWO_BYTE_SCANCODE){
+			*wait = true;
+			return;
+		}
+		else{
+			*nbyte = 1;
+		}
+	}
+
+	else{
+		*nbyte = 2;
+	*	wait = false;
+	}
+}
