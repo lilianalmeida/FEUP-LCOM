@@ -5,8 +5,7 @@
   #include <stdint.h>
 
   #include "keyboard.h"
-  
-  uint32_t scanByte = 0;
+
 
 int main(int argc, char *argv[]) {
     // sets the language of LCF messages (can be either EN-US or PT-PT)
@@ -40,15 +39,16 @@ int (kbd_test_scan)(bool assembly) {
   }
 
 
-  uint8_t bit_no = 1;
-  uint32_t irq_set = BIT (bit_no);
+  uint8_t bit_no;
 
   int erro=keyboard_subscribe(&bit_no);
   if (erro != OK) {
     printf("Error in keyboard_subscribe", 0);
     return erro;
   }
-  
+
+  uint32_t irq_set = BIT(bit_no); 
+  printf ( "%x",irq_set); 
 
   int ipc_status;
   message msg;
@@ -70,7 +70,7 @@ int (kbd_test_scan)(bool assembly) {
       case HARDWARE: /* hardware interrupt notification */
         if (msg.m_notify.interrupts & irq_set) { /* subscribed interrupt */
       
-      if (assembly == 0){
+      if (!assembly){
         kbc_ih();
         
         if (wait == false){
@@ -93,7 +93,7 @@ int (kbd_test_scan)(bool assembly) {
         
 
       }
-          else if (assembly == 1) //do something
+          else if (!assembly) //do something
 
       tickdelay (micros_to_ticks (DELAY_US));
     }
@@ -108,9 +108,7 @@ int (kbd_test_scan)(bool assembly) {
   }
 }
 
-
-
-  if (assembly == 0){
+  if (assembly){
     erro = kbd_print_no_sysinb (counter);
     return erro;
   }
@@ -121,25 +119,77 @@ int (kbd_test_scan)(bool assembly) {
     return erro;
   }
 
+  counter = 0;
   return 0;
 }
 
 
-int (kbd_test_poll)() {
-      /* To be completed */
+
+
+int (kbd_test_poll)() {  
+
+  uint8_t nbyte = 0; //numero de bytes do scancode
+  bool wait = false;
+
+  while (scanByte != ESC_CODE) {      
+          if (kbc_pol(scanByte) == -1){
+            continue;
+          }
+
+          if(wait == false){
+          if (scanByte == TWO_BYTE_SCANCODE){
+            wait = true;
+            continue;
+          }
+          else{
+            nbyte = 1;
+          }
+        }
+        else{
+          nbyte = 2;
+          wait = false;
+        }
+
+        int erro = scancode_parse (scanByte, nbyte);
+        if(erro != OK)//ver erro
+        return erro;
+
+      tickdelay (micros_to_ticks (DELAY_US));
+}
+
+  
+
+    if(kbd_print_no_sysinb (counter)){
+    return !OK;
+  }
+
+  int erro=interrupt_handler();
+  if (erro != OK) {
+    printf("Error in keyboard_unsbscribe", 0);
+    return erro;
+  }
+
   return 0;
 }
+
+
+
+
 int (kbd_test_timed_scan)(uint8_t UNUSED(n)) {
       /* To be completed */
       /* When you use argument n for the first time, delete the UNUSED macro */
   return 0;
 }
 
+
+
+
 void (kbc_ih)(void){
   
   uint32_t stat = 0;
+  int numCiclos = 0;
   
-  while(1) {
+  while(numCiclos < 5) {
 
     sys_inb_count(STAT_REG, &stat);
 
@@ -157,7 +207,7 @@ void (kbc_ih)(void){
       else
         return;
     }
-    tickdelay (micros_to_ticks (DELAY_US));
+    numCiclos++;
   }
 }
 

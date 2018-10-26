@@ -5,10 +5,11 @@
 #include "keyboard.h"
 
 //global variable
-int keyboard_id = 0x01;
+static int hook_id = 0x01;
 uint32_t counter =0;
+uint32_t scanByte = 0;
 
-int sys_inb_count (port_t port, uint32_t *byte){
+int (sys_inb_count) (port_t port, uint32_t *byte){
 
 	counter++;
 	return sys_inb (port,byte);
@@ -18,26 +19,52 @@ int sys_inb_count (port_t port, uint32_t *byte){
 
 int (keyboard_subscribe)(uint8_t * bit_no) {
 
-	int erro = sys_irqsetpolicy(KEYBOARD_IRQ, (IRQ_REENABLE | IRQ_EXCLUSIVE), &keyboard_id);
+	hook_id = 1;
+	*bit_no = hook_id;
+
+	int erro = sys_irqsetpolicy(KEYBOARD_IRQ, (IRQ_REENABLE | IRQ_EXCLUSIVE), &hook_id);
 	if (erro != OK) {
 		printf("Error in sys_irqsetpolicy", 0);
 		return erro;
 	}
-
-	*bit_no = keyboard_id;
+	
 
 	return 0;
 }
 
 int (keyboard_unsubscribe)() {
 
-	int erro = sys_irqrmpolicy(&keyboard_id);
+	int erro = sys_irqrmpolicy(&hook_id);
 	if (erro != OK) {
 		printf("Error in sys_irqrmpolicy", 0);
 		return erro;
 	}
 
 	return 0;
+}
+
+
+int (kbc_pol)() {
+	uint32_t stat = 0;
+  	int numCiclos = 0;
+  
+  while(numCiclos <= 5) {
+
+    sys_inb_count(STAT_REG, &stat); 
+      
+    if( stat & OBF ) {
+
+      sys_inb_count(OUT_BUF, &scanByte);
+
+      if ( (stat &(PAR_ERR | TO_ERR | AUX)) != 0 ){
+        return -1;
+      }
+      else
+        return 0;
+    }
+    numCiclos++;
+  }
+  return -1;
 }
 
 
@@ -62,5 +89,20 @@ int (scancode_parse)(uint32_t byte, uint8_t nbyte){
 		}
 
 return 0;
+}
+
+int (interrupt_handler)(){
+	uint32_t cmd;
+
+	sys_outb(KBC_CMD_REG, READ_COMMAND);
+	sys_inb(OUT_BUF, &cmd);
+
+	cmd |= INTR_ENABLE;
+
+	sys_outb(KBC_CMD_REG, WRITE_COMMAND);
+	sys_outb(KBC_CMD_REG, cmd);
+
+	return 0;
+
 }
 
