@@ -27,10 +27,10 @@
 
 #define DELAY_US 20000
 
- #ifdef LAB3
- int sys_inb_count(port_t port, uint32_t *byte);
- #else
- #define sys_inb_cnt(p,q) sys_inb(p,q)
- #endif
+  /*#ifdef LAB3
+  int sys_inb_count(port_t port, uint32_t *byte);
+  #else
+  #define sys_inb_cnt(p,q) sys_inb(p,q)
+  #endif*/
 
 #endif /* _LCOM_MACRO_H */
