@@ -238,3 +238,4 @@ int (kbd_test_timed_scan)(uint8_t n) {
 
   return 0;
 }
+
