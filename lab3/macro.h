@@ -8,6 +8,7 @@
 #define OUT_BUF 0x60
 #define IN_BUF 0x60
 #define INTR_ENABLE BIT(0)
+#define INTR_DISABLE 0xef
 
 #define TWO_BYTE_SCANCODE 0xE0
 
@@ -15,7 +16,6 @@
 
 #define READ_COMMAND 0x20
 #define WRITE_COMMAND 0x60
-//#define ARG_COMMAND 0x60
 
 #define PAR_ERR BIT(7)
 #define TO_ERR BIT(6)
@@ -26,11 +26,5 @@
 #define ESC_CODE 0x81
 
 #define DELAY_US 20000
-
-  /*#ifdef LAB3
-  int sys_inb_count(port_t port, uint32_t *byte);
-  #else
-  #define sys_inb_cnt(p,q) sys_inb(p,q)
-  #endif*/
 
 #endif /* _LCOM_MACRO_H */

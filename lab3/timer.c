@@ -59,7 +59,7 @@ int (timer_set_frequency)(uint8_t timer, uint32_t freq) {
 //// 7.3 ////
 int (timer_subscribe_int)(uint8_t * bit_no) {
 
-	*bit_no = BIT(hook_id_t);
+	*bit_no = hook_id_t;
 
 	int erro = sys_irqsetpolicy(TIMER0_IRQ, IRQ_REENABLE, &hook_id_t);
 	if (erro != OK) {
