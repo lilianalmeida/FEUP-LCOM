@@ -9,18 +9,12 @@ int (mouse_subscribe)(int * bit_no) {
     printf("Error subscribing mouse\n");
     return 1;
   }
-  if(sys_irqenable(bit_no) != 0){
-    printf("Error enabling mouse interrupts\n");
-    return 1;
-  }
+
   return 0;
 }
+
 int (mouse_unsubscribe)(int * mouse_id) {
 
-  if(sys_irqdisable(mouse_id) != 0){
-    printf("Error disabling the interrupt of the associated mouse hook id\n");
-    return 1;
-  }
   int erro = sys_irqrmpolicy(mouse_id);
     if (erro != OK) {
       printf("Error in sys_irqrmpolicy", 0);
