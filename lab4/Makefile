@@ -1,6 +1,6 @@
 PROG=lab4
 
-SRCS = lab4.c
+SRCS = lab4.c mouse.c macros.h
 
 CPPFLAGS += -pedantic
 
