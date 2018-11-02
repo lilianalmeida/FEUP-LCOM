@@ -22,6 +22,8 @@
 #define ERROR	                0xFC  // Second consecutive invalid byte
 #define MOUSE_ENABLE		    	0XF4 	// Enable data reporting in stream only
 #define MOUSE_DISABLE	        0XF5  // Disable data reporting in stream only
+#define MOUSE_BIT3            BIT(3) //The 3rd bit of the first byte is always set
+
 
 #define DELAY_US 20000
 
