@@ -2,11 +2,13 @@
 #include "mouse.h"
 #include "macros.h"
 
+static int hook_id = 0x01;
 
-int (mouse_subscribe)(int * bit_no) {
+int (mouse_subscribe)(uint8_t * bit_no) {
 
+*bit_no = hook_id;
 
-	if(sys_irqsetpolicy(MOUSE_IRQ,(IRQ_REENABLE | IRQ_EXCLUSIVE),bit_no) != OK){
+	if(sys_irqsetpolicy(MOUSE_IRQ,(IRQ_REENABLE | IRQ_EXCLUSIVE),&hook_id) != OK){
 		printf("Error subscribing mouse\n");
 		return 1;
 	}
@@ -14,15 +16,15 @@ int (mouse_subscribe)(int * bit_no) {
 	return 0;
 }
 
-int (mouse_unsubscribe)(int * mouse_id) {
+int (mouse_unsubscribe)() {
 
-	int erro = sys_irqrmpolicy(mouse_id);
+	int erro = sys_irqrmpolicy(&hook_id);
 		if (erro != OK) {
 			printf("Error in sys_irqrmpolicy", 0);
 			return erro;
 		}
 		return 0;
-	}
+}
 
 	int (mouse_enable)(){
 		int counter =0;

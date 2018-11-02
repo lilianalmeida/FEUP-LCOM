@@ -38,14 +38,14 @@ int (mouse_test_packet)(uint32_t cnt) {
   uint32_t counter = 0;
   uint32_t byte_array[3];
   message msg;
-  int mouse_id = 12;
-  uint32_t irq_set = BIT(mouse_id);
+  uint8_t mouse_id;
   uint32_t r;
 
   if(mouse_subscribe(&mouse_id) != 0){
   printf("Error subscribing mouse notifications\n");
   return -1;
   }
+   uint32_t irq_set = BIT(mouse_id);
 
   if(mouse_enable() != 0){
     printf("The program failed to enable the mouse data reporting\n");
@@ -84,7 +84,7 @@ if(mouse_disable() != 0){
   return -1;
 }
 
-if(mouse_unsubscribe(&mouse_id) != 0){
+if(mouse_unsubscribe() != 0){
       printf("The program was unable to unsubscribe a mouse notification\n");
       return 1;
     }
