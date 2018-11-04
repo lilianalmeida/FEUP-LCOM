@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
-#include "mous.h"
+#include "mouse.h"
 #include "macros.h"
 
 // Any header files included below this line should have been created by you
@@ -42,16 +42,16 @@ int (mouse_test_packet)(uint32_t cnt) {
   uint8_t mouse_id;
   uint32_t r;
 
-
-  if(mouse_enable() != 0){
-    printf("The program failed to enable the mouse data reporting\n");
-    return 1;
-  }
   if(mouse_subscribe(&mouse_id) != 0){
   printf("Error subscribing mouse notifications\n");
   return -1;
   }
    uint32_t irq_set = BIT(mouse_id);
+
+  if(mouse_enable() != 0){
+    printf("The program failed to enable the mouse data reporting\n");
+    return 1;
+  }
 
 OB_cleaner(); // Clear the output buffer
 
@@ -74,7 +74,7 @@ while(counter < cnt) {
 
                   if(byteNumber == 2){
                     counter++;
-                    print_packet();
+                      print_packet();
                   }
                   }
 
@@ -87,23 +87,21 @@ while(counter < cnt) {
     }
  }
 
+if(mouse_disable() != 0){
+  printf("Error disabling mouse data reporting\n");
+  return -1;
+}
 
 if(mouse_unsubscribe() != 0){
       printf("The program was unable to unsubscribe a mouse notification\n");
       return 1;
     }
-
-    if(mouse_disable() != 0){
-  printf("Error disabling mouse data reporting\n");
-  return -1;
-}
 OB_cleaner(); // Clear the output buffer
 return 0;
 }
 
-
 int (mouse_test_remote)(uint16_t period, uint8_t cnt) {
-  
+
 uint32_t counter = 0;
 
     if(disable_mouse_interrupts() != OK){
