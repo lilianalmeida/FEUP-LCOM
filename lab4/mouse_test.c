@@ -1,6 +1,6 @@
 #include <lcom/lcf.h>
 #include <lcom/timer.h>
-#include "mouse.h"
+#include "mouseee.h"
 #include "macros.h"
 #include "i8254.h"
 
@@ -9,6 +9,7 @@ unsigned int byteNumber = 0;
 static uint32_t byte_array[3];
 bool kbc_ih_error = false;
 uint32_t counter_t = 0;
+state_t state = INIT;
 
 int (mouse_subscribe)(uint8_t * bit_no) {
 
@@ -114,36 +115,15 @@ int (mouse_unsubscribe)() {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 void (mouse_ih)(void){
-	//uint32_t stat = 0;
+
 	uint32_t byte;
-	//int numCiclos = 0;
-	//while (numCiclos < 5) {
-		/*if (sys_inb(STAT_REG, &stat) != OK) {
-			printf("Error reading stat reg\n",0 );
-			kbc_ih_error = true;
-			return;
-		}*/
+
 		if(sys_inb(OUT_BUFF,&byte) != 0){//reads output buffer
 			//printf("Error reading output buffer\n",0 );
 			kbc_ih_error = true;
 			return;
 		}
-		/*if ((stat & (PAR_ERR | TO_ERR)) == 0) {
-			kbc_ih_error = false;
-		} else {
-			printf("Error in errors\n",0 );
-			kbc_ih_error = true;
-			return;
-		}*/
 
-	/*numCiclos++;
-	}
-
-	if (numCiclos == 5){
-		printf("Number of cicles finished\n",0 );
-		kbc_ih_error = true;
-		return;
-	}*/
 	byte_array[byteNumber] = byte; //sends the byte read to the array
 	byteNumber++;
 
@@ -160,30 +140,29 @@ void (mouse_ih)(void){
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-void (print_packet)(){
-	struct packet pp;
-    pp.bytes[0] = byte_array[0];
-    pp.bytes[1] = byte_array[1];
-    pp.bytes[2] = byte_array[2];
-    pp.rb = (byte_array[0] & BIT(1)) >> 1;
-    pp.lb = (byte_array[0] & BIT(0));
-    pp.mb = (byte_array[0] & BIT(2)) >> 2;
-    pp.x_ov = (byte_array[0] & BIT(6)) >> 6;
-    pp.y_ov = (byte_array[0] & BIT(7)) >> 7;
+void (print_packet)(struct packet *pp){
+    pp->bytes[0] = byte_array[0];
+    pp->bytes[1] = byte_array[1];
+    pp->bytes[2] = byte_array[2];
+    pp->rb = (byte_array[0] & BIT(1)) >> 1;
+    pp->lb = (byte_array[0] & BIT(0));
+    pp->mb = (byte_array[0] & BIT(2)) >> 2;
+    pp->x_ov = (byte_array[0] & BIT(6)) >> 6;
+    pp->y_ov = (byte_array[0] & BIT(7)) >> 7;
     if ((byte_array[0] & BIT(4)) == 0){
-      pp.delta_x = 0x00FF & byte_array[1];
+      pp->delta_x = 0x00FF & byte_array[1];
     }
     else{
-      pp.delta_x = 0xFF00 | byte_array[1];
+      pp->delta_x = 0xFF00 | byte_array[1];
     }
      if ((byte_array[0] & BIT(5)) == 0){
-      pp.delta_y = 0x00FF & byte_array[2];
+      pp->delta_y = 0x00FF & byte_array[2];
     }
     else{
-      pp.delta_y = 0xFF00 | byte_array[2];
+      pp->delta_y = 0xFF00 | byte_array[2];
     }
 
-    mouse_print_packet(&pp);
+    mouse_print_packet(pp);
 }
 
 
@@ -293,4 +272,76 @@ int (enable_mouse_interrupts)() {
 
 	return 1;
 
+}
+
+void (gesture_handler)(struct mouse_ev *evt, uint8_t x_len) {
+	switch (state) {
+		case INIT:
+			if( evt->type == LB_PRESSED )
+				state = DRAW1;
+			break;
+		case DRAW1:
+			if( evt->type == MOUSE_MOV ) {
+				if ((evt->delta_x >= x_len) && (evt->delta_y/evt->delta_x > 1)){
+					state = LINE1;
+				}
+
+			} else if( evt->type == LB_RELEASED || evt->type == RB_PRESSED || evt->type == BUTTON_EV){
+				state = INIT;
+				evt->delta_x = 0;
+				evt->delta_y = 0;
+			}
+
+			break;
+		case LINE1:
+			if( evt->type == LB_RELEASED ){
+				state = VERTEX;
+				evt->delta_x = 0;
+				evt->delta_y = 0;
+			}else if (evt->type == MOUSE_MOV){
+				state = DRAW1;
+			}else if(evt->type == RB_PRESSED || evt->type == BUTTON_EV){
+				state = INIT;
+				evt->delta_x = 0;
+				evt->delta_y = 0;
+			}
+
+			break;
+		case VERTEX:
+			if( evt->type == RB_PRESSED ){
+				state = DRAW2;
+				evt->delta_x = 0;
+				evt->delta_y = 0;
+			}else if(evt->type == LB_PRESSED || evt->type == BUTTON_EV){
+				state = INIT;
+				evt->delta_x = 0;
+				evt->delta_y = 0;
+			}
+			break;
+		case DRAW2:
+			if( evt->type == MOUSE_MOV ) {
+					if ((evt->delta_x >= x_len) && (abs(evt->delta_y/evt->delta_x) > 1)){
+					state = LINE2;
+				}
+
+			} else if( evt->type == RB_RELEASED || evt->type == LB_PRESSED || evt->type == BUTTON_EV)
+				state = INIT;
+			break;
+		case LINE2:
+			if( evt->type == RB_RELEASED ){
+				state = COMP;
+			}
+			if (evt->type == MOUSE_MOV){
+				state = DRAW2;
+			}else if(evt->type == LB_PRESSED || evt->type == BUTTON_EV){
+				state = INIT;
+				evt->delta_x = 0;
+				evt->delta_y = 0;
+			}
+
+			break;
+		default:
+			break;
+	}
+	//return state;
 }
