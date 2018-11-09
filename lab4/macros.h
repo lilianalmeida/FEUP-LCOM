@@ -34,6 +34,11 @@
 #define MOUSE_BIT3            	BIT(3) 	// The 3rd bit of the first byte is always set
 
 
+
+#define PAR_ERR BIT(7)
+#define TO_ERR BIT(6)
+
+
 #define DELAY_US 				20000
 
 #endif
