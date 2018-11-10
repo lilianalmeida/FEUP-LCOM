@@ -1,6 +1,6 @@
 #include <lcom/lcf.h>
 #include <lcom/timer.h>
-#include "mouseee.h"
+#include "mouse_test.h"
 #include "macros.h"
 #include "i8254.h"
 
@@ -39,7 +39,7 @@ int (mouse_unsubscribe)() {
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-	int (mouse_enable)(){
+	int (mouse_enable_data)(){
 		int counter =0;
 		while(counter <5){ //Return true if the mouse was enabled succesfully in less than 5 tries
 			if(write_kbc(MOUSE_ENABLE) == 0)
@@ -52,7 +52,7 @@ int (mouse_unsubscribe)() {
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-	int (mouse_disable)(){
+	int (mouse_disable_data)(){
 		//	uint32_t stat = 0;
 		int counter =0;
 		while(counter <5){ //Return true if the mouse was enabled succesfully in less than 5 tries
@@ -71,22 +71,35 @@ int (mouse_unsubscribe)() {
 
 	int (write_kbc)(uint32_t cmd_byte){
 		uint32_t status = 0;
-		//int cnt = 0;
+		int done = 0;
 		uint32_t verification;
-		do {
+		while(!done){
+		if (sys_inb(STAT_REG, &status) != OK) return -1; // verify the status of the buffer
+
+				if ((status & IBF) == 0) {
 					sys_outb(KBC_CMD_REG, KBC_CMD_INIT); //prepares mouse for writing
+				}
 					if (sys_inb(STAT_REG, &status) != OK) return -1; // verify the status of the buffer
 
 				if ((status & IBF) == 0) {
 					sys_outb(IN_BUFF,cmd_byte); //writes the command byte
 				}
 					sys_inb(OUT_BUFF,&verification);
+					if(verification == NACK){
+						continue;
+					}
+					else if(verification == ERROR){
+						return 1;
+					}
+					else{
+						done= 1;
+					}
 
 			/*if (verificationBits != NACK || verificationBits != ERROR){
 				break;//if there are no erros breaks the loop and returns 0
 			}*/
+				}
 
-		}while (verification != ACK);
 
 		return 0;
 	}
@@ -296,8 +309,6 @@ void (gesture_handler)(struct mouse_ev *evt, uint8_t x_len) {
 		case LINE1:
 			if( evt->type == LB_RELEASED ){
 				state = VERTEX;
-				evt->delta_x = 0;
-				evt->delta_y = 0;
 			}else if (evt->type == MOUSE_MOV){
 				state = DRAW1;
 			}else if(evt->type == RB_PRESSED || evt->type == BUTTON_EV){
@@ -312,7 +323,11 @@ void (gesture_handler)(struct mouse_ev *evt, uint8_t x_len) {
 				state = DRAW2;
 				evt->delta_x = 0;
 				evt->delta_y = 0;
-			}else if(evt->type == LB_PRESSED || evt->type == BUTTON_EV){
+			}else if(evt->type == LB_PRESSED){
+				state = DRAW1;
+				evt->delta_x = 0;
+				evt->delta_y = 0;
+			}else if(evt->type == BUTTON_EV){
 				state = INIT;
 				evt->delta_x = 0;
 				evt->delta_y = 0;
