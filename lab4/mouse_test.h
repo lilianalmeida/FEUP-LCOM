@@ -9,12 +9,11 @@ int (mouse_unsubscribe)();
 int (mouse_enable_data)();
 int (mouse_disable_data)();
 int (write_kbc)(uint32_t cmd_byte);
-int (disable_mouse_interrupts)();
-void (print_packet)(struct packet *pp);
-int (set_remote_mode)();
+void (print_packet)();
 int (set_stream_mode)();
 int (enable_mouse_interrupts)();
 void (gesture_handler)(struct mouse_ev *evt, uint8_t x_len);
+void (mouse_events_handler)(struct mouse_ev *event, uint8_t x_len, uint8_t tolerance);
 
 extern unsigned int byteNumber;
 extern bool kbc_ih_error;

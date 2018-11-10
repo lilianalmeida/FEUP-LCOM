@@ -10,6 +10,7 @@ static uint32_t byte_array[3];
 bool kbc_ih_error = false;
 uint32_t counter_t = 0;
 state_t state = INIT;
+static struct packet pp;
 
 int (mouse_subscribe)(uint8_t * bit_no) {
 
@@ -53,7 +54,6 @@ int (mouse_enable_data)(){
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 int (mouse_disable_data)(){
-	//	uint32_t stat = 0;
 	int counter =0;
 	while(counter <5){ //Return true if the mouse was enabled succesfully in less than 5 tries
 		if(write_kbc(MOUSE_DISABLE)== 0)
@@ -74,12 +74,12 @@ int (write_kbc)(uint32_t cmd_byte){
 	int done = 0;
 	uint32_t verification;
 	while(!done){
-		if (sys_inb(STAT_REG, &status) != OK) return -1; // verify the status of the buffer
+		if (sys_inb(STAT_REG, &status) != OK) return -1;
 
 		if ((status & IBF) == 0) {
 			sys_outb(KBC_CMD_REG, KBC_CMD_INIT); //prepares mouse for writing
 		}
-		if (sys_inb(STAT_REG, &status) != OK) return -1; // verify the status of the buffer
+		if (sys_inb(STAT_REG, &status) != OK) return -1;
 
 		if ((status & IBF) == 0) {
 			sys_outb(IN_BUFF,cmd_byte); //writes the command byte
@@ -128,95 +128,37 @@ void (mouse_ih)(void){
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-void (print_packet)(struct packet *pp){
-	pp->bytes[0] = byte_array[0];
-	pp->bytes[1] = byte_array[1];
-	pp->bytes[2] = byte_array[2];
-	pp->rb = (byte_array[0] & BIT(1)) >> 1;
-	pp->lb = (byte_array[0] & BIT(0));
-	pp->mb = (byte_array[0] & BIT(2)) >> 2;
-	pp->x_ov = (byte_array[0] & BIT(6)) >> 6;
-	pp->y_ov = (byte_array[0] & BIT(7)) >> 7;
+void (print_packet)(){
+	pp.bytes[0] = byte_array[0];
+	pp.bytes[1] = byte_array[1];
+	pp.bytes[2] = byte_array[2];
+	pp.rb = (byte_array[0] & BIT(1)) >> 1;
+	pp.lb = (byte_array[0] & BIT(0));
+	pp.mb = (byte_array[0] & BIT(2)) >> 2;
+	pp.x_ov = (byte_array[0] & BIT(6)) >> 6;
+	pp.y_ov = (byte_array[0] & BIT(7)) >> 7;
 	if ((byte_array[0] & BIT(4)) == 0){
-		pp->delta_x = 0x00FF & byte_array[1];
+		pp.delta_x = 0x00FF & byte_array[1];
 	}
 	else{
-		pp->delta_x = 0xFF00 | byte_array[1];
+		pp.delta_x = 0xFF00 | byte_array[1];
 	}
 	if ((byte_array[0] & BIT(5)) == 0){
-		pp->delta_y = 0x00FF & byte_array[2];
+		pp.delta_y = 0x00FF & byte_array[2];
 	}
 	else{
-		pp->delta_y = 0xFF00 | byte_array[2];
+		pp.delta_y = 0xFF00 | byte_array[2];
 	}
 
-	mouse_print_packet(pp);
-}
-
-
-///////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////
-
-int (disable_mouse_interrupts)() {
-	uint32_t cmd;
-	uint32_t stat = 0;
-	int numCiclos = 0;
-
-	if (sys_outb(KBC_CMD_REG, READ_COMMAND) != OK) {
-		return 1;
-	}
-
-	if (sys_inb(OUT_BUFF, &cmd) != OK) {
-		return 1;
-	}
-
-	cmd = cmd & MOUSE_DIS_CMD;
-
-	if (sys_outb(KBC_CMD_REG, WRITE_COMMAND) != OK) {
-		return 1;
-	}
-
-	while (numCiclos < 5) {
-		if (sys_inb(STAT_REG, &stat) != 0)
-		return 1; //assuming it returns OK
-
-		if ((stat & IBF) == 0) {
-			if (sys_outb(OUT_BUFF, cmd) != OK) {
-				return 1;
-			} else {
-				return 0;
-			}
-		}
-		numCiclos++;
-	}
-
-	return 1;
-
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////
-
-int (set_remote_mode)(){
-	int counter =0;
-	while(counter <5){ //Return true if the mouse was enabled succesfully in less than 5 tries
-		if(write_kbc(SET_REMOTE)== 0)
-		return 0;
-		counter++;
-	}
-	return 1;
+	mouse_print_packet(&pp);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 int (set_stream_mode)(){
-	int counter =0;
-	while(counter <5){ //Return true if the mouse was enabled succesfully in less than 5 tries
 		if(write_kbc(SET_STREAM)== 0)
 		return 0;
-		counter++;
-	}
 	return 1;
 }
 
@@ -228,23 +170,27 @@ int (enable_mouse_interrupts)() {
 	uint32_t stat = 0;
 	int numCiclos = 0;
 
-	if (sys_outb(KBC_CMD_REG, READ_COMMAND) != OK) {
-		return 1;
-	}
-
-	if (sys_inb(OUT_BUFF, &cmd) != OK) {
-		return 1;
-	}
-
 	cmd = minix_get_dflt_kbc_cmd_byte();
 
-	if (sys_outb(KBC_CMD_REG, WRITE_COMMAND) != OK) {
-		return 1;
+	while (numCiclos < 5) {
+		if (sys_inb(STAT_REG, &stat) != 0)
+		return 1; 
+
+		if ((stat & IBF) == 0) {
+			if (sys_outb(KBC_CMD_REG, WRITE_COMMAND) != OK) {
+				return 1;
+			}
+			else{
+				numCiclos = 0;
+				break;
+			}
+		}
+		numCiclos++;
 	}
 
 	while (numCiclos < 5) {
 		if (sys_inb(STAT_REG, &stat) != 0)
-		return 1; //assuming it returns OK
+		return 1; 
 
 		if ((stat & IBF) == 0) {
 			if (sys_outb(OUT_BUFF, cmd) != OK) {
@@ -257,6 +203,80 @@ int (enable_mouse_interrupts)() {
 	}
 
 	return 1;
+
+}
+
+void (mouse_events_handler)(struct mouse_ev *event,uint8_t x_len, uint8_t tolerance){
+	if (!pp.rb && pp.lb && !pp.mb){ //if left button is pressed
+              if (pp.delta_x == 0 && pp.delta_y == 0){
+                event->type = LB_PRESSED;
+                gesture_handler(event, x_len);
+                return;
+              }
+              event->delta_x += pp.delta_x;
+              event->delta_y += pp.delta_y;
+
+              if ((pp.delta_x >= -tolerance) && (pp.delta_y >= -tolerance)){ //displacements in x and y
+                if (event->delta_y / event->delta_x > 0){ //positive slope
+                  event->type = MOUSE_MOV;
+                  gesture_handler(event, x_len);
+                }
+                else{
+                  event->type = BUTTON_EV;
+                  gesture_handler(event, x_len);
+                }
+              }else{
+                event->type = BUTTON_EV;
+                gesture_handler(event, x_len);
+
+              }
+            }else if (pp.rb && !pp.lb && !pp.mb){ //if rigth button is pressed
+              if(pp.delta_x == 0 && pp.delta_y == 0){
+                event->type = RB_PRESSED;
+                gesture_handler(event, x_len);
+                return;
+              }
+              event->delta_x += pp.delta_x;
+              event->delta_y += pp.delta_y;
+              if ((pp.delta_x >= -tolerance) && (pp.delta_y <= tolerance)){ //displacements in x and y
+                if (event->delta_y / event->delta_x < 0){ //positive slope
+                  event->type = MOUSE_MOV;
+                  gesture_handler(event, x_len);
+                }
+                else{
+                  event->type = BUTTON_EV;
+                  gesture_handler(event, x_len);
+                }
+              }else{
+                event->type = BUTTON_EV;
+                gesture_handler(event, x_len);
+              }
+
+            }else if (!pp.rb && !pp.lb && !pp.mb){ //if no button is pressed
+              if (state == LINE1 || state == DRAW1){
+                event->type = LB_RELEASED;
+              }else if (state == LINE2 || state == DRAW2){
+                event->type = RB_RELEASED;
+              }
+              else if(state == VERTEX) {
+                if ((abs(pp.delta_x) <= tolerance) && (abs(pp.delta_y) <= tolerance)){
+                  event->type = MOUSE_MOV;
+                }
+                else{
+                  event->type = BUTTON_EV;
+                }
+
+              }
+              else
+              event->type = BUTTON_EV;
+
+              gesture_handler(event, x_len);
+            }
+
+            else{ //if the middle button is pressed or more than one button is pressed
+              event->type = BUTTON_EV;
+              gesture_handler(event, x_len);
+            }
 
 }
 
@@ -334,5 +354,4 @@ void (gesture_handler)(struct mouse_ev *evt, uint8_t x_len) {
 		default:
 		break;
 	}
-	//return state;
 }
