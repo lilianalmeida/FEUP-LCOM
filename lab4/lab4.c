@@ -36,10 +36,15 @@ int main(int argc, char *argv[]) {
 
 
 int (mouse_test_packet)(uint32_t cnt) {
+
+  if(cnt <=0){
+    printf("Invalid parameter! Make sure cnt is greater than zero", 0);
+    return 1;
+  }
+
   int ipc_status;
   uint32_t counter = 0;
   struct packet pp;
-
 
   message msg;
   uint8_t mouse_id;
@@ -111,6 +116,12 @@ int (mouse_test_packet)(uint32_t cnt) {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 int (mouse_test_remote)(uint16_t period, uint8_t cnt) {
+
+  if(period <=0 || cnt <=0){
+    printf("Invalid parameters! Make sure period and cnt are greater than zero.",0);
+    return 1;
+  }
+
   struct packet pp;
   uint32_t counter = 0;
 
@@ -154,9 +165,15 @@ int (mouse_test_remote)(uint16_t period, uint8_t cnt) {
 
 int (mouse_test_async)(uint8_t idle_time) {
 
+  if(idle_time <= 0){
+    printf("Invalid parameter! Make sure idle_time is greater than zero.", 0);
+    return 1;
+  }
+
   uint8_t bit_no_mouse, bit_no_timer;
   uint32_t erro;
   struct packet pp;
+
 
   if (timer_subscribe_int(&bit_no_timer)) {
     printf("Error in timer_subscribe_int", 0);
@@ -247,6 +264,11 @@ int (mouse_test_async)(uint8_t idle_time) {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 int (mouse_test_gesture)(uint8_t x_len, uint8_t tolerance){
+
+  if(x_len <= 0 || x_len > 255 || tolerance < 0 || tolerance > 255){
+    printf("Invalid arguments! Make sure x_len is greater than 0 and tolerance is not negative.",0);
+    return 1;
+  }
 
   int ipc_status;
   message msg;
