@@ -9,7 +9,6 @@ int (mouse_unsubscribe)();
 int (mouse_enable_data)();
 int (mouse_disable_data)();
 int (write_kbc)(uint32_t cmd_byte);
-int (OB_cleaner)();
 int (disable_mouse_interrupts)();
 void (print_packet)(struct packet *pp);
 int (set_remote_mode)();

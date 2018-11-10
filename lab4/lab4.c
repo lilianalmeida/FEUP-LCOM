@@ -4,11 +4,11 @@
 
 #include <stdint.h>
 #include <stdio.h>
+
+// Any header files included below this line should have been created by you
 #include "mouse_test.h"
 #include "macros.h"
 #include "i8254.h"
-
-// Any header files included below this line should have been created by you
 
 int main(int argc, char *argv[]) {
   // sets the language of LCF messages (can be either EN-US or PT-PT)
@@ -53,7 +53,6 @@ int (mouse_test_packet)(uint32_t cnt) {
     printf("The program failed to enable the mouse data reporting\n");
     return 1;
   }
-  //mouse_enable_data_reporting();
 
   if(mouse_subscribe(&mouse_id) != 0){
     printf("Error subscribing mouse notifications\n");
@@ -61,7 +60,7 @@ int (mouse_test_packet)(uint32_t cnt) {
   }
   uint32_t irq_set = BIT(mouse_id);
 
-  //OB_cleaner(); // Clear the output buffer
+
 
   while(counter < cnt) {
 
@@ -70,12 +69,10 @@ int (mouse_test_packet)(uint32_t cnt) {
       continue;
     }
 
-    if (is_ipc_notify(ipc_status)) { /* received notification */
+    if (is_ipc_notify(ipc_status)) {
       switch (_ENDPOINT_P(msg.m_source)) {
-        case HARDWARE: /* hardware interrupt notification */
-        if (msg.m_notify.interrupts & irq_set) { /* subscribed interrupt */
-
-          /////// Parte a rever ///////////
+        case HARDWARE:
+        if (msg.m_notify.interrupts & irq_set) {
           mouse_ih();
 
           if (kbc_ih_error == true){
@@ -89,14 +86,11 @@ int (mouse_test_packet)(uint32_t cnt) {
             byteNumber = 0;
           }
         }
-        ////// Até aqui ////////////
 
-        break;
         default:
-        break; /* no other notifications expected: do nothing */
+        break;
       }
-    } else { /* received a standard message, not a notification */
-      /* no standard messages expected: do nothing */
+    } else {
     }
   }
 
@@ -110,7 +104,6 @@ int (mouse_test_packet)(uint32_t cnt) {
     return 1;
   }
 
-  //OB_cleaner(); // Clear the output buffer
   return 0;
 }
 
@@ -118,24 +111,10 @@ int (mouse_test_packet)(uint32_t cnt) {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 int (mouse_test_remote)(uint16_t period, uint8_t cnt) {
- struct packet pp;
- uint32_t counter = 0;
-
-  /*if(disable_mouse_interrupts() != OK){
-    return 1;
-  }
-
-  if(mouse_disable_data() != OK){
-    return 1;
-  }
-
-  if(set_remote_mode() != OK){
-    return 1;
-  }
-  OB_cleaner();*/
+  struct packet pp;
+  uint32_t counter = 0;
 
   while (counter < cnt){
-    //printf("Counter: %x\n", counter);
     if (byteNumber == 0){
       write_kbc(READ_DATA);
     }
@@ -153,10 +132,9 @@ int (mouse_test_remote)(uint16_t period, uint8_t cnt) {
       counter++;
       tickdelay (micros_to_ticks(period*1000));
     }
-
   }
 
-if(set_stream_mode() != OK){
+  if(set_stream_mode() != OK){
     return 1;
   }
 
@@ -167,8 +145,6 @@ if(set_stream_mode() != OK){
   if(enable_mouse_interrupts()!= OK){
     return 1;
   }
-  //OB_cleaner();
-
   return 0;
 }
 
@@ -184,20 +160,19 @@ int (mouse_test_async)(uint8_t idle_time) {
 
 
 
-  if (timer_subscribe_int(&bit_no_timer)) { //subscribes the timer
+  if (timer_subscribe_int(&bit_no_timer)) {
     printf("Error in timer_subscribe_int", 0);
     return 1;
   }
 
-if(set_stream_mode() != OK){
+  if(set_stream_mode() != OK){
     return 1;
   }
 
- if(mouse_enable_data() != 0){
+  if(mouse_enable_data() != 0){
     printf("The program failed to enable the mouse data reporting\n");
     return 1;
   }
-  //mouse_enable_data_reporting();
 
   if(mouse_subscribe(&bit_no_mouse) != 0){
     printf("Error subscribing mouse notifications\n");
@@ -211,22 +186,20 @@ if(set_stream_mode() != OK){
   message msg;
 
   while (counter_t / 60 < idle_time) { //Stops if ESC is pressed or has no input for n seconds
-    /* Get a request message. */
-    //printf("Counter %x\n", counter_t);
 
     if ((erro = driver_receive(ANY, &msg, &ipc_status)) != 0) {
       printf("Driver_receive failed with: %d", erro);
       continue;
     }
 
-    if (is_ipc_notify(ipc_status)) { /* received notification */
+    if (is_ipc_notify(ipc_status)) {
 
       switch (_ENDPOINT_P(msg.m_source)) {
-        case HARDWARE: /* hardware interrupt notification */
-        if (msg.m_notify.interrupts & irq_set_timer) {/* subscribed interrupt */
+        case HARDWARE:
+        if (msg.m_notify.interrupts & irq_set_timer) {
           timer_int_handler();
         }
-        if (msg.m_notify.interrupts & irq_set_mouse) { /* subscribed interrupt */
+        if (msg.m_notify.interrupts & irq_set_mouse) {
           mouse_ih();
 
           if (kbc_ih_error == true){
@@ -244,16 +217,16 @@ if(set_stream_mode() != OK){
         break;
 
         default:
-        break; /* no other notifications expected: do nothing */
+        break;
       }
 
     }
-    else { /* received a standard message, not a notification */
-      /* no standard messages expected: do nothing */
+    else {
+      /*do nothing */
     }
   }
 
-  if ( timer_unsubscribe_int()) { //unsibscribes the timer
+  if ( timer_unsubscribe_int()) { //unsubscribes the timer
     printf("Error in timer_unsbscribe_int", 0);
     return 1;
   }
@@ -267,7 +240,7 @@ if(set_stream_mode() != OK){
     return 1;
   }
 
- // OB_cleaner();
+  // OB_cleaner();
 
   return 0;
 }
@@ -290,21 +263,16 @@ int (mouse_test_gesture)(uint8_t x_len, uint8_t tolerance){
     return 1;
   }
 
-
-  /*if(mouse_enable_data() != 0){
+  if(mouse_enable_data() != 0){
     printf("The program failed to enable the mouse data reporting\n");
     return 1;
-  }*/
-
-  mouse_enable_data_reporting();
+  }
 
   if(mouse_subscribe(&mouse_id) != 0){
     printf("Error subscribing mouse notifications\n");
     return -1;
   }
   uint32_t irq_set = BIT(mouse_id);
-
-  //OB_cleaner(); // Clear the output buffer
 
   while(state != COMP) {
 
@@ -313,10 +281,10 @@ int (mouse_test_gesture)(uint8_t x_len, uint8_t tolerance){
       continue;
     }
 
-    if (is_ipc_notify(ipc_status)) { /* received notification */
+    if (is_ipc_notify(ipc_status)) {
       switch (_ENDPOINT_P(msg.m_source)) {
-        case HARDWARE: /* hardware interrupt notification */
-        if (msg.m_notify.interrupts & irq_set) { /* subscribed interrupt */
+        case HARDWARE:
+        if (msg.m_notify.interrupts & irq_set) {
 
           mouse_ih();
 
@@ -324,109 +292,102 @@ int (mouse_test_gesture)(uint8_t x_len, uint8_t tolerance){
             byteNumber = 0;
             continue;
           }
-            if(byteNumber == 3){
-              print_packet(&pp);
-              byteNumber = 0;
-                //printf("ola %x\n", state);
-              
-              if (!pp.rb && pp.lb && !pp.mb){ //if left button is pressed
-                //if (state == INIT || state == VERTEX){
-                if (pp.delta_x == 0 && pp.delta_y == 0){
-                  event.type = LB_PRESSED;
-                gesture_handler(&event, x_len); 
-                continue;
-              }
-                printf("%x\n", state);
-                event.delta_x += pp.delta_x;
-                event.delta_y += pp.delta_y;
+          if(byteNumber == 3){
+            print_packet(&pp);
+            byteNumber = 0;
 
-                if ((pp.delta_x >= -tolerance) && (pp.delta_y >= -tolerance)){ //displacements in x and y
-                  if (event.delta_y / event.delta_x > 0){ //positive slope
-                    event.type = MOUSE_MOV;
-                    printf("%x\n", state);
-                    gesture_handler(&event, x_len);
-                  }
-                  else{
-                    event.type = BUTTON_EV;
-                    gesture_handler(&event, x_len);
-                    printf(" tent 1 %x\n", state);
-                    printf(" delta x : %x\n", pp.delta_x);
-                    printf(" delta y: %x\n", pp.delta_y);
-                    printf(" event x : %x\n", event.delta_x);
-                    printf(" event y: %x\n", event.delta_y);
-                  }
-                }else{
-                  event.type = BUTTON_EV;
-                  gesture_handler(&event, x_len);
-                   printf("tent 2 %x\n", state);
-                }
-              }else if (pp.rb && !pp.lb && !pp.mb){ //if rigth button is pressed
-                if(pp.delta_x == 0 && pp.delta_y == 0){
-                  event.type = RB_PRESSED;
+            if (!pp.rb && pp.lb && !pp.mb){ //if left button is pressed
+              //if (state == INIT || state == VERTEX){
+              if (pp.delta_x == 0 && pp.delta_y == 0){
+                event.type = LB_PRESSED;
                 gesture_handler(&event, x_len);
                 continue;
               }
               printf("%x\n", state);
-                event.delta_x += pp.delta_x;
-                event.delta_y += pp.delta_y;
-                if ((pp.delta_x >= -tolerance) && (pp.delta_y <= tolerance)){ //displacements in x and y
-                  if (event.delta_y / event.delta_x < 0){ //positive slope
-                    event.type = MOUSE_MOV;
-                    gesture_handler(&event, x_len);
-                     printf("%x\n", state);
-                  }
-                  else{
-                    event.type = BUTTON_EV;
-                    gesture_handler(&event, x_len);
-                     printf("%x\n", state);
-                  }
-                }else{
+              event.delta_x += pp.delta_x;
+              event.delta_y += pp.delta_y;
+
+              if ((pp.delta_x >= -tolerance) && (pp.delta_y >= -tolerance)){ //displacements in x and y
+                if (event.delta_y / event.delta_x > 0){ //positive slope
+                  event.type = MOUSE_MOV;
+                  printf("%x\n", state);
+                  gesture_handler(&event, x_len);
+                }
+                else{
                   event.type = BUTTON_EV;
                   gesture_handler(&event, x_len);
-                   printf("%x\n", state);
+                  printf(" tent 1 %x\n", state);
+                  printf(" delta x : %x\n", pp.delta_x);
+                  printf(" delta y: %x\n", pp.delta_y);
+                  printf(" event x : %x\n", event.delta_x);
+                  printf(" event y: %x\n", event.delta_y);
                 }
-
-              }else if (!pp.rb && !pp.lb && !pp.mb){ //if no button is pressed
-                if (state == LINE1 || state == DRAW1){
-                  event.type = LB_RELEASED;
-                }else if (state == LINE2 || state == DRAW2){
-                  event.type = RB_RELEASED;
-                }
-                else if(state == VERTEX) {
-                  if ((abs(pp.delta_x) <= tolerance) && (abs(pp.delta_y) <= tolerance)){
-                    event.type = MOUSE_MOV;
-                  }
-                  else{
-                    event.type = BUTTON_EV;
-                  }
-
-                }
-                else
+              }else{
                 event.type = BUTTON_EV;
-
+                gesture_handler(&event, x_len);
+                printf("tent 2 %x\n", state);
+              }
+            }else if (pp.rb && !pp.lb && !pp.mb){ //if rigth button is pressed
+              if(pp.delta_x == 0 && pp.delta_y == 0){
+                event.type = RB_PRESSED;
+                gesture_handler(&event, x_len);
+                continue;
+              }
+              printf("%x\n", state);
+              event.delta_x += pp.delta_x;
+              event.delta_y += pp.delta_y;
+              if ((pp.delta_x >= -tolerance) && (pp.delta_y <= tolerance)){ //displacements in x and y
+                if (event.delta_y / event.delta_x < 0){ //positive slope
+                  event.type = MOUSE_MOV;
+                  gesture_handler(&event, x_len);
+                  printf("%x\n", state);
+                }
+                else{
+                  event.type = BUTTON_EV;
+                  gesture_handler(&event, x_len);
+                  printf("%x\n", state);
+                }
+              }else{
+                event.type = BUTTON_EV;
                 gesture_handler(&event, x_len);
                 printf("%x\n", state);
               }
 
-
-              else{ //if the middle button is pressed or more than one button is pressed
-                event.type = BUTTON_EV;
-                gesture_handler(&event, x_len);
-                printf("%x\n", state);
+            }else if (!pp.rb && !pp.lb && !pp.mb){ //if no button is pressed
+              if (state == LINE1 || state == DRAW1){
+                event.type = LB_RELEASED;
+              }else if (state == LINE2 || state == DRAW2){
+                event.type = RB_RELEASED;
               }
+              else if(state == VERTEX) {
+                if ((abs(pp.delta_x) <= tolerance) && (abs(pp.delta_y) <= tolerance)){
+                  event.type = MOUSE_MOV;
+                }
+                else{
+                  event.type = BUTTON_EV;
+                }
 
+              }
+              else
+              event.type = BUTTON_EV;
 
+              gesture_handler(&event, x_len);
+              printf("%x\n", state);
+            }
 
-
+            else{ //if the middle button is pressed or more than one button is pressed
+              event.type = BUTTON_EV;
+              gesture_handler(&event, x_len);
+              printf("%x\n", state);
+            }
           }
-
         }
         break;
         default:
-        break; /* no other notifications expected: do nothing */
+        break;
       }
-    } else { /* received a standard message, not a notification */
-      /* no standard messages expected: do nothing */
+    } else {
+      /* do nothing */
     }
   }
 
@@ -440,6 +401,5 @@ int (mouse_test_gesture)(uint8_t x_len, uint8_t tolerance){
     return 1;
   }
 
-  //OB_cleaner(); // Clear the output buffer
   return 0;
 }
