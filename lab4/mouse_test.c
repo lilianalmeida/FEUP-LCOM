@@ -107,7 +107,7 @@ void (mouse_ih)(void){
 	uint32_t byte;
 
 	if(sys_inb(OUT_BUFF,&byte) != 0){//reads output buffer
-		//printf("Error reading output buffer\n",0 );
+		printf("Error reading output buffer\n",0 );
 		kbc_ih_error = true;
 		return;
 	}

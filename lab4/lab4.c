@@ -158,8 +158,6 @@ int (mouse_test_async)(uint8_t idle_time) {
   uint32_t erro;
   struct packet pp;
 
-
-
   if (timer_subscribe_int(&bit_no_timer)) {
     printf("Error in timer_subscribe_int", 0);
     return 1;
@@ -303,29 +301,22 @@ int (mouse_test_gesture)(uint8_t x_len, uint8_t tolerance){
                 gesture_handler(&event, x_len);
                 continue;
               }
-              printf("%x\n", state);
               event.delta_x += pp.delta_x;
               event.delta_y += pp.delta_y;
 
               if ((pp.delta_x >= -tolerance) && (pp.delta_y >= -tolerance)){ //displacements in x and y
                 if (event.delta_y / event.delta_x > 0){ //positive slope
                   event.type = MOUSE_MOV;
-                  printf("%x\n", state);
                   gesture_handler(&event, x_len);
                 }
                 else{
                   event.type = BUTTON_EV;
                   gesture_handler(&event, x_len);
-                  printf(" tent 1 %x\n", state);
-                  printf(" delta x : %x\n", pp.delta_x);
-                  printf(" delta y: %x\n", pp.delta_y);
-                  printf(" event x : %x\n", event.delta_x);
-                  printf(" event y: %x\n", event.delta_y);
                 }
               }else{
                 event.type = BUTTON_EV;
                 gesture_handler(&event, x_len);
-                printf("tent 2 %x\n", state);
+
               }
             }else if (pp.rb && !pp.lb && !pp.mb){ //if rigth button is pressed
               if(pp.delta_x == 0 && pp.delta_y == 0){
@@ -333,24 +324,20 @@ int (mouse_test_gesture)(uint8_t x_len, uint8_t tolerance){
                 gesture_handler(&event, x_len);
                 continue;
               }
-              printf("%x\n", state);
               event.delta_x += pp.delta_x;
               event.delta_y += pp.delta_y;
               if ((pp.delta_x >= -tolerance) && (pp.delta_y <= tolerance)){ //displacements in x and y
                 if (event.delta_y / event.delta_x < 0){ //positive slope
                   event.type = MOUSE_MOV;
                   gesture_handler(&event, x_len);
-                  printf("%x\n", state);
                 }
                 else{
                   event.type = BUTTON_EV;
                   gesture_handler(&event, x_len);
-                  printf("%x\n", state);
                 }
               }else{
                 event.type = BUTTON_EV;
                 gesture_handler(&event, x_len);
-                printf("%x\n", state);
               }
 
             }else if (!pp.rb && !pp.lb && !pp.mb){ //if no button is pressed
@@ -372,13 +359,11 @@ int (mouse_test_gesture)(uint8_t x_len, uint8_t tolerance){
               event.type = BUTTON_EV;
 
               gesture_handler(&event, x_len);
-              printf("%x\n", state);
             }
 
             else{ //if the middle button is pressed or more than one button is pressed
               event.type = BUTTON_EV;
               gesture_handler(&event, x_len);
-              printf("%x\n", state);
             }
           }
         }
