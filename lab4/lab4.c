@@ -117,8 +117,8 @@ int (mouse_test_packet)(uint32_t cnt) {
 
 int (mouse_test_remote)(uint16_t period, uint8_t cnt) {
 
-  if(period <=0 || cnt <=0){
-    printf("Invalid parameters! Make sure period and cnt are greater than zero.",0);
+  if(period <=0 || cnt <=0 || cnt > 255){
+    printf("Invalid parameters! Make sure period and cnt are greater than zero and cnt is lower than 256.",0);
     return 1;
   }
 
@@ -266,7 +266,7 @@ int (mouse_test_async)(uint8_t idle_time) {
 int (mouse_test_gesture)(uint8_t x_len, uint8_t tolerance){
 
   if(x_len <= 0 || x_len > 255 || tolerance < 0 || tolerance > 255){
-    printf("Invalid arguments! Make sure x_len is greater than 0 and tolerance is not negative.",0);
+    printf("Invalid arguments! Make sure x_len is between 0 and 256 and tolerance is not negative.",0);
     return 1;
   }
 
