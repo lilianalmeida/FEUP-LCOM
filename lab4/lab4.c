@@ -45,7 +45,11 @@ int (mouse_test_packet)(uint32_t cnt) {
   uint8_t mouse_id;
   uint32_t r;
 
-  if(mouse_enable() != 0){
+  if(set_stream_mode() != OK){
+    return 1;
+  }
+
+  if(mouse_enable_data() != 0){
     printf("The program failed to enable the mouse data reporting\n");
     return 1;
   }
@@ -57,7 +61,7 @@ int (mouse_test_packet)(uint32_t cnt) {
   }
   uint32_t irq_set = BIT(mouse_id);
 
-  OB_cleaner(); // Clear the output buffer
+  //OB_cleaner(); // Clear the output buffer
 
   while(counter < cnt) {
 
@@ -101,12 +105,12 @@ int (mouse_test_packet)(uint32_t cnt) {
     return 1;
   }
 
-  if(mouse_disable() != 0){
+  if(mouse_disable_data() != 0){
     printf("Error disabling mouse data reporting\n");
     return 1;
   }
 
-  OB_cleaner(); // Clear the output buffer
+  //OB_cleaner(); // Clear the output buffer
   return 0;
 }
 
@@ -117,18 +121,18 @@ int (mouse_test_remote)(uint16_t period, uint8_t cnt) {
  struct packet pp;
  uint32_t counter = 0;
 
-  if(disable_mouse_interrupts() != OK){
+  /*if(disable_mouse_interrupts() != OK){
     return 1;
   }
 
-  if(mouse_disable() != OK){
+  if(mouse_disable_data() != OK){
     return 1;
   }
 
   if(set_remote_mode() != OK){
     return 1;
   }
-  OB_cleaner();
+  OB_cleaner();*/
 
   while (counter < cnt){
     //printf("Counter: %x\n", counter);
@@ -152,18 +156,18 @@ int (mouse_test_remote)(uint16_t period, uint8_t cnt) {
 
   }
 
-  if(mouse_disable() != OK){
+if(set_stream_mode() != OK){
     return 1;
   }
 
-  if(set_stream_mode() != OK){
+  if(mouse_disable_data() != OK){
     return 1;
   }
 
   if(enable_mouse_interrupts()!= OK){
     return 1;
   }
-  OB_cleaner();
+  //OB_cleaner();
 
   return 0;
 }
@@ -178,12 +182,18 @@ int (mouse_test_async)(uint8_t idle_time) {
   uint32_t erro;
   struct packet pp;
 
+
+
   if (timer_subscribe_int(&bit_no_timer)) { //subscribes the timer
     printf("Error in timer_subscribe_int", 0);
     return 1;
   }
 
- if(mouse_enable() != 0){
+if(set_stream_mode() != OK){
+    return 1;
+  }
+
+ if(mouse_enable_data() != 0){
     printf("The program failed to enable the mouse data reporting\n");
     return 1;
   }
@@ -252,12 +262,12 @@ int (mouse_test_async)(uint8_t idle_time) {
     return 1;
   }
 
-  if(mouse_disable() != 0){
+  if(mouse_disable_data() != 0){
     printf("Error disabling mouse data reporting\n");
     return 1;
   }
 
-  OB_cleaner();
+ // OB_cleaner();
 
   return 0;
 }
@@ -276,12 +286,16 @@ int (mouse_test_gesture)(uint8_t x_len, uint8_t tolerance){
   event.delta_x = 0;
   event.delta_y = 0;
 
-
-  /*if(mouse_enable() != 0){
-    printf("The program failed to enable the mouse data reporting\n");
+  if(set_stream_mode() != OK){
     return 1;
   }
-*/
+
+
+  /*if(mouse_enable_data() != 0){
+    printf("The program failed to enable the mouse data reporting\n");
+    return 1;
+  }*/
+
   mouse_enable_data_reporting();
 
   if(mouse_subscribe(&mouse_id) != 0){
@@ -290,7 +304,7 @@ int (mouse_test_gesture)(uint8_t x_len, uint8_t tolerance){
   }
   uint32_t irq_set = BIT(mouse_id);
 
-  OB_cleaner(); // Clear the output buffer
+  //OB_cleaner(); // Clear the output buffer
 
   while(state != COMP) {
 
@@ -313,16 +327,20 @@ int (mouse_test_gesture)(uint8_t x_len, uint8_t tolerance){
             if(byteNumber == 3){
               print_packet(&pp);
               byteNumber = 0;
-                printf("ola %x\n", state);
+                //printf("ola %x\n", state);
               
               if (!pp.rb && pp.lb && !pp.mb){ //if left button is pressed
-                if (state == INIT || state == VERTEX){
+                //if (state == INIT || state == VERTEX){
+                if (pp.delta_x == 0 && pp.delta_y == 0){
                   event.type = LB_PRESSED;
-                gesture_handler(&event, x_len); continue;}
+                gesture_handler(&event, x_len); 
+                continue;
+              }
                 printf("%x\n", state);
                 event.delta_x += pp.delta_x;
                 event.delta_y += pp.delta_y;
-                if (pp.delta_x > -tolerance && pp.delta_y > -tolerance){ //displacements in x and y
+
+                if ((pp.delta_x >= -tolerance) && (pp.delta_y >= -tolerance)){ //displacements in x and y
                   if (event.delta_y / event.delta_x > 0){ //positive slope
                     event.type = MOUSE_MOV;
                     printf("%x\n", state);
@@ -331,15 +349,19 @@ int (mouse_test_gesture)(uint8_t x_len, uint8_t tolerance){
                   else{
                     event.type = BUTTON_EV;
                     gesture_handler(&event, x_len);
-                    printf("%x\n", state);
+                    printf(" tent 1 %x\n", state);
+                    printf(" delta x : %x\n", pp.delta_x);
+                    printf(" delta y: %x\n", pp.delta_y);
+                    printf(" event x : %x\n", event.delta_x);
+                    printf(" event y: %x\n", event.delta_y);
                   }
                 }else{
                   event.type = BUTTON_EV;
                   gesture_handler(&event, x_len);
-                   printf("%x\n", state);
+                   printf("tent 2 %x\n", state);
                 }
               }else if (pp.rb && !pp.lb && !pp.mb){ //if rigth button is pressed
-                if(state == VERTEX || state == VERTEX){
+                if(pp.delta_x == 0 && pp.delta_y == 0){
                   event.type = RB_PRESSED;
                 gesture_handler(&event, x_len);
                 continue;
@@ -347,7 +369,7 @@ int (mouse_test_gesture)(uint8_t x_len, uint8_t tolerance){
               printf("%x\n", state);
                 event.delta_x += pp.delta_x;
                 event.delta_y += pp.delta_y;
-                if (pp.delta_x > tolerance && pp.delta_y > tolerance){ //displacements in x and y
+                if ((pp.delta_x >= -tolerance) && (pp.delta_y <= tolerance)){ //displacements in x and y
                   if (event.delta_y / event.delta_x < 0){ //positive slope
                     event.type = MOUSE_MOV;
                     gesture_handler(&event, x_len);
@@ -371,7 +393,7 @@ int (mouse_test_gesture)(uint8_t x_len, uint8_t tolerance){
                   event.type = RB_RELEASED;
                 }
                 else if(state == VERTEX) {
-                  if (abs(pp.delta_x) <= tolerance && abs(pp.delta_y) <= tolerance){
+                  if ((abs(pp.delta_x) <= tolerance) && (abs(pp.delta_y) <= tolerance)){
                     event.type = MOUSE_MOV;
                   }
                   else{
@@ -413,11 +435,11 @@ int (mouse_test_gesture)(uint8_t x_len, uint8_t tolerance){
     return 1;
   }
 
-  if(mouse_disable() != 0){
+  if(mouse_disable_data() != 0){
     printf("Error disabling mouse data reporting\n");
     return 1;
   }
 
-  OB_cleaner(); // Clear the output buffer
+  //OB_cleaner(); // Clear the output buffer
   return 0;
 }

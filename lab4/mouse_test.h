@@ -6,8 +6,8 @@ typedef enum {INIT, DRAW1, LINE1, VERTEX, DRAW2, LINE2, COMP} state_t;
 
 int (mouse_subscribe)(uint8_t * bit_no);
 int (mouse_unsubscribe)();
-int (mouse_enable)();
-int (mouse_disable)();
+int (mouse_enable_data)();
+int (mouse_disable_data)();
 int (write_kbc)(uint32_t cmd_byte);
 int (OB_cleaner)();
 int (disable_mouse_interrupts)();
