@@ -44,7 +44,6 @@ int (mouse_test_packet)(uint32_t cnt) {
 
   int ipc_status;
   uint32_t counter = 0;
-  struct packet pp;
 
   message msg;
   uint8_t mouse_id;
@@ -87,7 +86,7 @@ int (mouse_test_packet)(uint32_t cnt) {
 
           if(byteNumber == 3){
             counter++;
-            print_packet(&pp);
+            print_packet();
             byteNumber = 0;
           }
         }
@@ -122,7 +121,6 @@ int (mouse_test_remote)(uint16_t period, uint8_t cnt) {
     return 1;
   }
 
-  struct packet pp;
   uint32_t counter = 0;
 
   while (counter < cnt){
@@ -138,7 +136,7 @@ int (mouse_test_remote)(uint16_t period, uint8_t cnt) {
     }
 
     if(byteNumber == 3){
-      print_packet(&pp);
+      print_packet();
       byteNumber = 0;
       counter++;
       tickdelay (micros_to_ticks(period*1000));
@@ -172,7 +170,6 @@ int (mouse_test_async)(uint8_t idle_time) {
 
   uint8_t bit_no_mouse, bit_no_timer;
   uint32_t erro;
-  struct packet pp;
 
 
   if (timer_subscribe_int(&bit_no_timer)) {
@@ -200,7 +197,7 @@ int (mouse_test_async)(uint8_t idle_time) {
   int ipc_status;
   message msg;
 
-  while (counter_t / 60 < idle_time) { //Stops if ESC is pressed or has no input for n seconds
+  while (counter_t / 60 < idle_time) {
 
     if ((erro = driver_receive(ANY, &msg, &ipc_status)) != 0) {
       printf("Driver_receive failed with: %d", erro);
@@ -223,7 +220,7 @@ int (mouse_test_async)(uint8_t idle_time) {
           }
 
           if(byteNumber == 3){
-            print_packet(&pp);
+            print_packet();
             byteNumber = 0;
             counter_t = 0;
           }
@@ -255,8 +252,6 @@ int (mouse_test_async)(uint8_t idle_time) {
     return 1;
   }
 
-  // OB_cleaner();
-
   return 0;
 }
 
@@ -274,7 +269,7 @@ int (mouse_test_gesture)(uint8_t x_len, uint8_t tolerance){
   message msg;
   uint8_t mouse_id;
   uint32_t r;
-  struct packet pp;
+
   struct mouse_ev event;
   event.delta_x = 0;
   event.delta_y = 0;
@@ -313,81 +308,11 @@ int (mouse_test_gesture)(uint8_t x_len, uint8_t tolerance){
             continue;
           }
           if(byteNumber == 3){
-            print_packet(&pp);
+            print_packet();
             byteNumber = 0;
 
-            if (!pp.rb && pp.lb && !pp.mb){ //if left button is pressed
-              //if (state == INIT || state == VERTEX){
-              if (pp.delta_x == 0 && pp.delta_y == 0){
-                event.type = LB_PRESSED;
-                gesture_handler(&event, x_len);
-                continue;
-              }
-              event.delta_x += pp.delta_x;
-              event.delta_y += pp.delta_y;
-
-              if ((pp.delta_x >= -tolerance) && (pp.delta_y >= -tolerance)){ //displacements in x and y
-                if (event.delta_y / event.delta_x > 0){ //positive slope
-                  event.type = MOUSE_MOV;
-                  gesture_handler(&event, x_len);
-                }
-                else{
-                  event.type = BUTTON_EV;
-                  gesture_handler(&event, x_len);
-                }
-              }else{
-                event.type = BUTTON_EV;
-                gesture_handler(&event, x_len);
-
-              }
-            }else if (pp.rb && !pp.lb && !pp.mb){ //if rigth button is pressed
-              if(pp.delta_x == 0 && pp.delta_y == 0){
-                event.type = RB_PRESSED;
-                gesture_handler(&event, x_len);
-                continue;
-              }
-              event.delta_x += pp.delta_x;
-              event.delta_y += pp.delta_y;
-              if ((pp.delta_x >= -tolerance) && (pp.delta_y <= tolerance)){ //displacements in x and y
-                if (event.delta_y / event.delta_x < 0){ //positive slope
-                  event.type = MOUSE_MOV;
-                  gesture_handler(&event, x_len);
-                }
-                else{
-                  event.type = BUTTON_EV;
-                  gesture_handler(&event, x_len);
-                }
-              }else{
-                event.type = BUTTON_EV;
-                gesture_handler(&event, x_len);
-              }
-
-            }else if (!pp.rb && !pp.lb && !pp.mb){ //if no button is pressed
-              if (state == LINE1 || state == DRAW1){
-                event.type = LB_RELEASED;
-              }else if (state == LINE2 || state == DRAW2){
-                event.type = RB_RELEASED;
-              }
-              else if(state == VERTEX) {
-                if ((abs(pp.delta_x) <= tolerance) && (abs(pp.delta_y) <= tolerance)){
-                  event.type = MOUSE_MOV;
-                }
-                else{
-                  event.type = BUTTON_EV;
-                }
-
-              }
-              else
-              event.type = BUTTON_EV;
-
-              gesture_handler(&event, x_len);
-            }
-
-            else{ //if the middle button is pressed or more than one button is pressed
-              event.type = BUTTON_EV;
-              gesture_handler(&event, x_len);
-            }
-          }
+             mouse_events_handler(&event,x_len, tolerance);
+           }
         }
         break;
         default:
