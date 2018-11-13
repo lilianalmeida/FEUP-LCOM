@@ -5,6 +5,8 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include "vbe_test.h"
+#include "macros.h"
 
 // Any header files included below this line should have been created by you
 
