@@ -1,6 +1,6 @@
 PROG=lab5
 
-SRCS = lab5.c
+SRCS = lab5.c video_gr.c
 
 CPPFLAGS += -pedantic
 
