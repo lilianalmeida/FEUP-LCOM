@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "vbe_test.h"
-#include "macros.h"
+#include "macro.h"
 #include "video_gr.h"
 #include "keyboard.h"
 
@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
 
 int (video_test_init)(uint16_t mode, uint8_t delay) {
 
-	vg(mode);
+	vg_initialize(mode);
 	tickdelay (micros_to_ticks (delay*1000000));
 	vg_exit();
 
@@ -46,13 +46,60 @@ int (video_test_init)(uint16_t mode, uint8_t delay) {
   return 0;
 }
 
-int (video_test_rectangle)(uint16_t mode, uint16_t x, uint16_t y,
-                       uint16_t width, uint16_t height, uint32_t color) {
-  /* To be completed */
-  printf("%s(0x%03X, %u, %u, %u, %u, 0x%08x): under construction\n",
-         __func__, mode, x, y, width, height, color);
+int (video_test_rectangle)(uint16_t mode, uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint32_t color) {
 
-  return 1;
+  uint8_t keyboard_id = 1;
+	int ipc_status;
+	message msg;
+	unsigned long irq_set = BIT(keyboard_id);
+	unsigned long r;
+	unsigned long scancode = 0;
+
+
+	if(keyboard_subscribe(&keyboard_id) != 0){
+		printf("Error enabling keyboard interrupts",0);
+		return 1;
+	}
+	if(vg_initialize(mode) != 0){
+			printf("Error setting graphics mode\n");
+			return 1;
+	}
+
+	drawSquare(x,y,width, height,color);
+	//video_dump_fb();
+
+	while (scancode != ESC_BREAK) {
+		/* Get a request message. */
+		if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) {
+			printf("driver_receive failed with: %d\n", r);
+			continue;
+		}
+		if (is_ipc_notify(ipc_status)) { /* received notification */
+			switch (_ENDPOINT_P(msg.m_source)) {
+			case HARDWARE: /* hardware interrupt notification */
+				if (msg.m_notify.interrupts & irq_set) { /* subscribed interrupt */
+					//Handle the interrupt in C
+				interrupt_handler(&scancode);
+					tickdelay(micros_to_ticks(DELAY_US));
+				}
+				break;
+			default:
+				break; /* no other notifications expected: do nothing */
+			}
+		} else { /* received a standard message, not a notification */
+			/* no standard messages expected: do nothing */
+		}
+	}
+
+	if (keyboard_unsubscribe() != 0) {
+		printf("Error disabling keyboard interrupts\n");
+		return 1;
+	}
+
+		vg_exit();
+		printf("Set to text mode\n");
+	return 0;
+
 }
 
 /*int (video_test_pattern)(uint16_t mode, uint8_t no_rectangles, uint32_t first) {

@@ -1,11 +1,5 @@
-#include <lcom/lcf.h>
-
-#include <stdint.h>
-#include <stdbool.h>
-
-#include "macro.h"
-#include "i8254.h"
-
+#ifndef _KEYBOARD_H_
+#define _KEYBOARD_H_
 
 #ifdef LAB3
 int sys_inb_count(port_t port, uint32_t *byte);
@@ -17,10 +11,12 @@ int sys_inb_count(port_t port, uint32_t *byte);
 extern uint32_t counter; //sys_inb counter
 extern bool kbc_ih_error;
 
-//int sys_inb_count (port_t port, uint32_t *byte);
 int (keyboard_subscribe)(uint8_t * bit_no);
 int (keyboard_unsubscribe)();
 int (kbc_pol)();
 int (scancode_parse)(uint32_t byte, uint8_t nbyte);
 int (interrupt_handler)();
 void (isTwoByte)(bool *wait, uint8_t *nbyte);
+
+
+#endif
