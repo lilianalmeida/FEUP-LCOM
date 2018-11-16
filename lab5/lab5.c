@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include "vbe_test.h"
 #include "macros.h"
+#include "video_gr.h"
+#include "keyboard.h"
 
 // Any header files included below this line should have been created by you
 
@@ -35,10 +37,13 @@ int main(int argc, char *argv[]) {
 }
 
 int (video_test_init)(uint16_t mode, uint8_t delay) {
-  /* To be completed */
-  printf("%s(0x%03x, %u): under construction\n", __func__, mode, delay);
 
-  return 1;
+	vg(mode);
+	tickdelay (micros_to_ticks (delay*1000000));
+	vg_exit();
+
+
+  return 0;
 }
 
 int (video_test_rectangle)(uint16_t mode, uint16_t x, uint16_t y,
@@ -50,9 +55,9 @@ int (video_test_rectangle)(uint16_t mode, uint16_t x, uint16_t y,
   return 1;
 }
 
-int (video_test_pattern)(uint16_t mode, uint8_t no_rectangles, uint32_t first) {
-  /* To be completed */
+/*int (video_test_pattern)(uint16_t mode, uint8_t no_rectangles, uint32_t first) {
+
   printf("%s(0x%03x, %u, 0x%08x): under construction\n", __func__, mode, no_rectangles, first);
 
   return 1;
-}
+}*/
