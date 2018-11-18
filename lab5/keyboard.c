@@ -10,6 +10,7 @@
 static int hook_id = 0x01;
 uint32_t counter = 0;
 uint32_t scanByte = 0;
+bool kbc_ih_error = false;
 
 int (sys_inb_count)(port_t port, uint32_t *byte) {
 
@@ -21,8 +22,7 @@ int (keyboard_subscribe)(uint8_t * bit_no) {
 
 	*bit_no = hook_id;
 
-	int erro = sys_irqsetpolicy(KEYBOARD_IRQ, (IRQ_REENABLE | IRQ_EXCLUSIVE),
-			&hook_id);
+	int erro = sys_irqsetpolicy(KEYBOARD_IRQ, (IRQ_REENABLE | IRQ_EXCLUSIVE), &hook_id);
 	if (erro != OK) {
 		printf("Error in sys_irqsetpolicy", 0);
 		return erro;
@@ -41,7 +41,7 @@ int (keyboard_unsubscribe)() {
 	return 0;
 }
 
-/*void (kbc_ih)(void) {
+void (kbc_ih)(void) {
 
 	uint32_t stat = 0;
 	int numCiclos = 0;
@@ -70,7 +70,7 @@ int (keyboard_unsubscribe)() {
 	}
 	kbc_ih_error = true;
 	return;
-}*/
+}
 
 void (isTwoByte)(bool *wait, uint8_t *nbyte) {
 
