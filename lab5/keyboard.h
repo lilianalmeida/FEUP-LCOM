@@ -10,6 +10,7 @@ int sys_inb_count(port_t port, uint32_t *byte);
 //global variable
 extern uint32_t counter; //sys_inb counter
 extern bool kbc_ih_error;
+extern uint32_t scanByte;
 
 int (keyboard_subscribe)(uint8_t * bit_no);
 int (keyboard_unsubscribe)();
