@@ -51,7 +51,7 @@ int (video_test_rectangle)(uint16_t mode, uint16_t x, uint16_t y, uint16_t width
   	uint8_t bit_no;
 	int ipc_status;
 	message msg;
-	uint32_t r;
+	 uint32_t r;
 
 
 	if(keyboard_subscribe(&bit_no) != OK){
@@ -61,6 +61,7 @@ int (video_test_rectangle)(uint16_t mode, uint16_t x, uint16_t y, uint16_t width
 	uint32_t irq_set = BIT(bit_no);
 
 	if(vg_init(mode) == NULL){
+    vg_exit();
 		printf("Error setting graphics mode\n");
 		return 1;
 	}
@@ -77,9 +78,9 @@ int (video_test_rectangle)(uint16_t mode, uint16_t x, uint16_t y, uint16_t width
 			switch (_ENDPOINT_P(msg.m_source)) {
 			case HARDWARE: /* hardware interrupt notification */
 				if (msg.m_notify.interrupts & irq_set) { /* subscribed interrupt */
-				 	
+
 				 	kbc_ih();
-					
+
 					if (kbc_ih_error) {
             			kbc_ih_error = false;
             			continue;
@@ -121,10 +122,11 @@ int (video_test_pattern)(uint16_t mode, uint8_t no_rectangles, uint32_t first, u
 	uint32_t irq_set = BIT(bit_no);
 
 	if(vg_init(mode) == NULL){
+    vg_exit();
 		printf("Error setting graphics mode\n");
 		return 1;
 	}
-	
+
 	drawPattern(no_rectangles, first, step);
 
 
@@ -138,9 +140,9 @@ int (video_test_pattern)(uint16_t mode, uint8_t no_rectangles, uint32_t first, u
 			switch (_ENDPOINT_P(msg.m_source)) {
 			case HARDWARE: /* hardware interrupt notification */
 				if (msg.m_notify.interrupts & irq_set) { /* subscribed interrupt */
-				 	
+
 				 	kbc_ih();
-					
+
 					if (kbc_ih_error) {
             			kbc_ih_error = false;
             			continue;
@@ -166,3 +168,72 @@ int (video_test_pattern)(uint16_t mode, uint8_t no_rectangles, uint32_t first, u
 	printf("Set to text mode\n");
 	return 0;
 }
+
+
+int (video_test_xpm)(const char *xpm[], uint16_t x, uint16_t y){
+
+ 	uint8_t bit_no;
+	int ipc_status;
+	message msg;
+	uint32_t r;
+
+
+	if(keyboard_subscribe(&bit_no) != OK){
+		printf("Error enabling keyboard interrupts",0);
+		return 1;
+	}
+	uint32_t irq_set = BIT(bit_no);
+
+	if(vg_init(MODE105) == NULL){
+		printf("Error setting graphics mode\n");
+		return 1;
+	}
+
+	drawSprite ( xpm, x, y);
+
+	while (scanByte != ESC_CODE) {
+		/* Get a request message. */
+		if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) {
+			printf("driver_receive failed with: %d\n", r);
+			continue;
+		}
+		if (is_ipc_notify(ipc_status)) { /* received notification */
+			switch (_ENDPOINT_P(msg.m_source)) {
+			case HARDWARE: /* hardware interrupt notification */
+				if (msg.m_notify.interrupts & irq_set) { /* subscribed interrupt */
+
+				 	kbc_ih();
+
+					if (kbc_ih_error) {
+            			kbc_ih_error = false;
+            			continue;
+					}
+
+					tickdelay(micros_to_ticks(DELAY_US));
+				}
+				break;
+			default:
+				break; /* no other notifications expected: do nothing */
+			}
+		} else { /* received a standard message, not a notification */
+			/* no standard messages expected: do nothing */
+		}
+	}
+
+	if (keyboard_unsubscribe() != 0) {
+		printf("Error disabling keyboard interrupts\n");
+		return 1;
+	}
+
+	vg_exit();
+	printf("Set to text mode\n");
+	return 0;
+ }
+ /*int (video_test_move)(const char *xpm[], uint16_t xi, uint16_t yi, uint16_t xf, uint16_t yf, int16_t speed, uint8_t fr_rate){
+   return 1;
+ }
+
+
+ int (video_test_controller)(){
+   return 1;
+ }*/
