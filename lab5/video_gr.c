@@ -1,7 +1,8 @@
 #include <lcom/lcf.h>
 #include <stdint.h>
 #include <math.h>
-#include "macros.h"
+#include "macro.h"
+#include "video_gr.h"
 
 static uint16_t h_res;		//screen horizontal resolution
 static uint16_t v_res; 		//screen vertical resolution
@@ -13,25 +14,72 @@ static uint8_t 	greenMaskSize;
 static uint8_t 	greenFieldPosition;
 static uint8_t 	blueMaskSize;
 static uint8_t 	blueFieldPosition;
+static uint16_t graphic_mode;
+
+int vbe_get_mode_inf(uint16_t mode, vbe_mode_info_t* vmi_p){		
+  
+  struct reg86u r;
+  mmap_t map;
+  phys_bytes buf;
+
+  memset(&r, 0, sizeof(r));	/* zero the structure */
+
+  if (lm_alloc(sizeof(vbe_mode_info_t), &map) == NULL) {
+  	printf("vbe_get_mode_inf: failed to allocate memory \n");
+  	return 1;
+  }
+  
+  buf = map.phys;
+
+  r.u.w.ax = VBE_MODE_INFO; /* VBE get mode info */
+  /* translate the buffer linear address to a far pointer */
+  r.u.w.es = PB2BASE(buf); /* set a segment base */
+  r.u.w.di = PB2OFF(buf); /* set the offset accordingly */
+  r.u.w.cx = mode;
+  r.u.b.intno = VBE_INT;
+
+  if (sys_int86(&r) != OK){ 
+  	printf("vbe_get_mode_inf: sys_int86() failed to obtain mode info \n");
+  	lm_free(&map);
+  	return 1;
+  }
+
+  *vmi_p = *(vbe_mode_info_t *)map.virt;
+/* vmi_p->PhysBasePtr = ((vbe_mode_info_t *) map.virt)->PhysBasePtr;
+	vmi_p->XResolution = ((vbe_mode_info_t *) map.virt)->XResolution;
+	vmi_p->YResolution = ((vbe_mode_info_t *) map.virt)->YResolution;
+	vmi_p->BitsPerPixel = ((vbe_mode_info_t *) map.virt)->BitsPerPixel;
+ */
+  lm_free(&map);
+
+  return 0;
+}
 
 void *(vg_init)(uint16_t mode){
-	lm_init(1);
+	graphic_mode = mode;
+
 	struct reg86u reg86;
 	memset(&reg86, 0, sizeof(reg86));
 	///por em constantes no macros.h estas variaveis todas
-	reg86.u.w.ax = 0x4F02; // VBE call, function 02 -- set VBE mode
-	reg86.u.w.bx = 1<<14|0x105; // set bit 14: linear framebuffer
-	reg86.u.b.intno = 0x10;
+	reg86.u.w.ax = SET_VBE; // VBE call, function 02 -- set VBE mode
+	reg86.u.w.bx = BIT(14)|mode; // set bit 14: linear framebuffer
+	reg86.u.b.intno = VBE_INT;
 	if( sys_int86(&reg86) != OK ) {
 		printf("set_vbe_mode: sys_int86() failed \n");
 		return NULL;
 	}
 
+	if (lm_init(1) == NULL) {
+  		printf("vbe_get_mode_inf: failed to initialize low memory \n");
+  		return NULL;
+ 	}
+
 	vbe_mode_info_t vbe;
-	if (vbe_get_mode_info(mode, &vbe) != OK){
+	if (vbe_get_mode_inf(mode, &vbe) != OK){
 		return NULL;
 	}
 
+	bits_per_pixel = vbe.BitsPerPixel;
 	h_res = vbe.XResolution;
 	v_res = vbe.YResolution;
 	redMaskSize = vbe.RedMaskSize;
@@ -41,41 +89,48 @@ void *(vg_init)(uint16_t mode){
 	blueMaskSize = vbe.BlueMaskSize;
 	blueFieldPosition = vbe.BlueFieldPosition;
 
-	bits_per_pixel = vbe.BitsPerPixel;
-
+	int r;
 	struct minix_mem_range mr;  //struct to manage physical and virtual memory adresses
-	phys_bytes vram_base = vbe.PhysBasePtr; //VRAM's physical address
-	unsigned int vram_size = h_res*v_res*(bits_per_pixel/8); //VRAM's size
+	unsigned int vram_base = (unsigned int) vbe.PhysBasePtr; //VRAM's physical address
+	unsigned int vram_size = h_res*v_res*ceil(bits_per_pixel/8); //VRAM's size
 
-	mr.mr_base = vram_base; //assigning the memory info to the struct
+	mr.mr_base = (phys_bytes) vram_base; //assigning the memory info to the struct
 	mr.mr_limit = mr.mr_base + vram_size;
 
-	int r;
 	if( OK != (r = sys_privctl(SELF, SYS_PRIV_ADD_MEM, &mr)))
 	panic("sys_privctl (ADD_MEM) failed: %d\n", r); /* Map memory */
 
 	video_mem = vm_map_phys(SELF, (void *)mr.mr_base, vram_size);
 
 	if(video_mem == MAP_FAILED)
-	panic("couldn't map video memory");
+		panic("couldn't map video memory");
 
 	return video_mem;
 }
 
-int (col)(uint16_t x, uint16_t y, uint32_t color){
+
+int col(uint16_t x, uint16_t y, uint32_t color){
 	if(x > h_res || y > v_res){
 		printf("Error: that pixel does not exist!", 0);
-		return -1;
+		return 1;
 	}
-	//conforme o modo de cores??
-	video_mem [y*h_res*(bits_per_pixel / 8) + x*(bits_per_pixel / 8)] = color & 0xf;
+	int bytes = bits_per_pixel/8;
+	//indexed
+	//video_mem [(y*h_res*bits_per_pixel) / 8 + (x*bits_per_pixel) / 8] = color;
+	for (int i= 0; i < bytes; i++){
+		video_mem [(y*h_res*bits_per_pixel) / 8 + (x*bits_per_pixel) / 8 + i] = color;
+	}
+	/*video_mem [((y*h_res*bits_per_pixel) / 8 + (x*bits_per_pixel) / 8) + redFieldPosition] = ((color >> redFieldPosition) % (1 << redMaskSize));
+	video_mem [((y*h_res*bits_per_pixel) / 8 + (x*bits_per_pixel) / 8) + greenFieldPosition] = ((color >> greenFieldPosition) % (1 << greenMaskSize));
+	video_mem [((y*h_res*bits_per_pixel) / 8 + (x*bits_per_pixel) / 8) + blueFieldPosition] = ((color >> blueFieldPosition) % (1 << blueMaskSize));
+	*/
 	return 0;
 }
 
 int (vg_draw_hline)	(uint16_t x, uint16_t y, uint16_t len, uint32_t color){
-	for(int j = x; (j-x) < len; j++){
-			if(col(j, y ,color) != OK){
-				return -1;
+	for(int i = 0; i < len; x++,i++){
+			if(col(x, y ,color) != OK){
+				return 1;
 			}
 	}
 	return 0;
@@ -83,42 +138,183 @@ int (vg_draw_hline)	(uint16_t x, uint16_t y, uint16_t len, uint32_t color){
 
 int (vg_draw_rectangle)(uint16_t x,uint16_t y,uint16_t width, uint16_t height, uint32_t color){
 
-	for(int i = y; (i-y) < height; i++){
-		if(vg_draw_hline(x,i, width, color)!= OK){
-			return -1;
+	for(int i = 0; i< height; y++,i++){
+		if(vg_draw_hline(x,y, width, color)!= OK){
+			return 1;
 		}
 	}
 
 	return 0;
 }
 
-int (drawPattern) (uint8_t no_rectangles, uint32_t first, uint8_t step){
-	uint16_t rec_width = h_res / (uint16_t) no_rectangles;
-	uint16_t rec_height = v_res / (uint16_t) no_rectangles;
-	uint16_t x = 0, y = 0;
-	uint32_t color = first;
+int drawPattern (uint8_t no_rectangles, uint32_t first, uint8_t step){
+	int rec_width = h_res / no_rectangles;
+	int rec_height = v_res / no_rectangles;
+	//uint16_t x = 0, y = 0;
+	static int color;
 
-	for (uint8_t i = 1; i <= no_rectangles; i++, y += rec_height){
-		for (uint8_t j = 1; j <= no_rectangles; j++, x += rec_width){
-			vg_draw_rectangle(x, y, rec_width, rec_height, color);
+	for (unsigned int y = 0, i = 0; i < no_rectangles; i++, y += rec_height){
+		for (unsigned int x = 0, j = 0; j < no_rectangles; j++, x += rec_width){
+			
+			color = (first + (i * no_rectangles + j) * step) % (1 << bits_per_pixel);
+			if (vg_draw_rectangle(x, y, rec_width, rec_height, color) != OK){
+				return 1;
+			}
 
-			//color in indexed mode
-			color = (first + (x * no_rectangles + y) * step) % (1 << bits_per_pixel);
 		}
-		x = 0;
+		
 	}
 	return 0;
 }
-int (drawSprite) (const char *xpm[], uint16_t x, uint16_t y){
-	int width = 0;
-	int height = 0;
+
+int drawSprite (const char *xpm[], uint16_t x, uint16_t y){
+	uint16_t prev_x = x;
+	int width;
+	int height;
 	char* sprite_addr;
+
 	sprite_addr = read_xpm (xpm, &width, &height);
 
-	for (int i = 0; i < height; i++ )
-		for(int j = 0; j < width; j++){
-			col(x+j,y + i,*(sprite_addr + i *width + j));
+	for (int i = 0; i < height; i++,y++){
+		if (y  >= v_res ){
+				break;
 		}
-
+		for(int j = 0; j < width; j++, prev_x++){
+			if (prev_x >= h_res ){
+				continue;
+			}
+			if (col(prev_x, y, *(sprite_addr + i *width + j)) != OK){
+				return 1;
+			}
+		}
+		prev_x = x;
+	}
 	return 0;
 }
+
+void draw_sprite(Sprite *sp) {
+  uint32_t color;
+  int y = sp->height, x = sp->width, i, j, a = 0;
+
+  for (i = 0; i < y; i++) {
+    for (j = 0; j < x; j++) {
+      color = sp->map[a];
+
+      col((sp->x+j), (sp->y+i), color);
+
+      a++;
+    }
+  }
+
+}
+
+void erase_sprite(Sprite *sp) {
+  int y = sp->height, x = sp->width, i, j;
+
+  for (i = 0; i < y; i++) {
+    for (j = 0; j < x; j++) {
+    	col((sp->x+j), (sp->y+i), BACKGROUNDCOLOR);
+    }
+  }
+}
+
+void move_sprite(Sprite *sprite, uint16_t xi, uint16_t yi, uint16_t xf, uint16_t yf, int16_t speed){
+	// if the speed is negative 
+	if (speed < 0) { 
+     	if (sprite->x < xf && yi == yf) {
+         	erase_sprite(sprite);
+            sprite->x++;
+            draw_sprite(sprite);
+
+        } else if (xi == xf && sprite->y < yf) {
+        	erase_sprite(sprite);
+            sprite->y++;
+            draw_sprite(sprite);
+
+        } else if (sprite->x > xf && yi == yf) {
+            erase_sprite(sprite);
+            sprite->x--;
+            draw_sprite(sprite);
+
+        } else if (xi == xf && sprite->y > yf) {
+            erase_sprite(sprite);
+            sprite->y--;
+            draw_sprite(sprite);
+        }
+
+    // if speed is positive
+    } else { 
+
+        if (sprite->x < xf && yi == yf) {
+            erase_sprite(sprite);
+            sprite->x += sprite->xspeed;
+            draw_sprite(sprite);
+        }
+
+        else if (xi == xf && sprite->y < yf) {
+        	erase_sprite(sprite);
+            sprite->y += sprite->yspeed;
+            draw_sprite(sprite);
+        }
+
+        else if (sprite->x > xf && yi == yf) {
+            erase_sprite(sprite);
+            sprite->x += -1 * sprite->xspeed;
+            draw_sprite(sprite);
+        }
+
+        else if (xi == xf && sprite->y > yf) {
+            erase_sprite(sprite);
+        	sprite->y += -1 * sprite->yspeed;
+            draw_sprite(sprite);
+        }
+    }
+}
+
+int vbe_get_controller_info(){		
+
+  struct reg86u r;
+  mmap_t map;
+  phys_bytes buf;
+  vg_vbe_contr_info_t contr_info;
+
+
+  if (  lm_init(1) == NULL) {
+  		printf("vbe_get_controller_info: failed to initialize low memory \n");
+  		return 1;
+  }
+  strcpy(contr_info.VBESignature, "VBE2");
+  memset(&r, 0, sizeof(r));	/* zero the structure */
+
+  if (lm_alloc(sizeof( contr_info), &map) == NULL) {
+  	printf("vbe_get_controller_info: failed to allocate memory \n");
+  	return 1;
+  }
+  
+  buf = map.phys;
+
+  r.u.w.ax = VBE_INFO;
+  /* translate the buffer linear address to a far pointer */
+  r.u.w.es = PB2BASE(buf); /* set a segment base */
+  r.u.w.di = PB2OFF(buf); /* set the offset accordingly */
+  r.u.b.intno = VBE_INT;
+
+  if (sys_int86(&r) != OK){ 
+  	printf("vbe_get_controller_info: sys_int86() failed to obtain mode info \n");
+  	lm_free(&map);
+  	return 1;
+  }
+
+
+  contr_info = *(vg_vbe_contr_info_t*)map.virt;
+
+  if (vg_display_vbe_contr_info (&contr_info) != OK){
+  	printf("vbe_get_controller_info: failed displaying VBE controller information \n");
+  	return 1;
+  }
+
+  lm_free(&map);
+
+  return 0;
+}
+
