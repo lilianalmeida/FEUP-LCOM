@@ -360,14 +360,7 @@ int vbe_get_controller_info(){
   }
 
 
-  contr_info.VBESignature = ((vg_vbe_contr_info_t*)map.virt)->VBESignature;
-  contr_info.VBEVersion = *((vg_vbe_contr_info_t*)map.virt)->VBEVersion;
-  contr_info.OEMString = *((vg_vbe_contr_info_t*)map.virt)->OEMString;
-  contr_info.VideoModeList = *((vg_vbe_contr_info_t*)map.virt)->VideoModeList;
-  contr_info.TotalMemory = *((vg_vbe_contr_info_t*)map.virt)->TotalMemory;
-  contr_info.OEMVendorNamePtr = *((vg_vbe_contr_info_t*)map.virt)->OEMVendorNamePtr;
-  contr_info.OEMProductNamePtr = *((vg_vbe_contr_info_t*)map.virt)->OEMProductNamePtr;
-  contr_info.OEMProductRevPtr = *((vg_vbe_contr_info_t*)map.virt)->OEMProductRevPtr;
+  contr_info = *((vg_vbe_contr_info_t*)map.virt);
 
   if (vg_display_vbe_contr_info (&contr_info) != OK){
   	printf("vbe_get_controller_info: failed displaying VBE controller information \n");
