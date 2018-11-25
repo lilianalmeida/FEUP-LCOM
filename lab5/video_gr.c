@@ -200,13 +200,7 @@ void draw_sprite(Sprite *sp) {
   int height = sp->height, width = sp->width, a = 0, y = sp->y, x = sp->x;
 
   for (int i = 0; i < height; i++, y++) {
-  	if (y >= v_res ){
-				break;
-		}
     for (int j = 0; j < width; j++, x++) {
-    	if (x >= h_res ){
-				continue;
-		}
       color = sp->map[a];
 
       col(x, y, color);
@@ -222,13 +216,7 @@ void erase_sprite(Sprite *sp) {
   int height = sp->height, width = sp->width, y = sp->y, x = sp->x;
 
   for (int i = 0; i < height; i++, y++) {
-  	if (y  >= v_res ){
-			break;
-		}
     for (int j = 0; j < width; j++, x++) {
-    	if (x >= h_res ){
-			continue;
-		}
     	col(x, y, BACKGROUNDCOLOR);
     }
   	x = sp->x;
@@ -261,7 +249,7 @@ void move_sprite(Sprite *sprite, uint16_t xi, uint16_t yi, uint16_t xf, uint16_t
 
     // if speed is positive
     } else { 
-  
+
         if (sprite->x < xf && yi == yf) {
             erase_sprite(sprite);
             sprite->x += sprite->xspeed;
