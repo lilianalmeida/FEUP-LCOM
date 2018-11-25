@@ -50,10 +50,6 @@ buf = map.phys;
   }
 
   *vmi_p = *(vbe_mode_info_t *)map.virt;
-/* vmi_p->PhysBasePtr = ((vbe_mode_info_t *) map.virt)->PhysBasePtr;
-	vmi_p->XResolution = ((vbe_mode_info_t *) map.virt)->XResolution;
-	vmi_p->YResolution = ((vbe_mode_info_t *) map.virt)->YResolution;
-	vmi_p->BitsPerPixel = ((vbe_mode_info_t *) map.virt)->BitsPerPixel;*/
 
   lm_free(&map);
 
@@ -364,7 +360,14 @@ int vbe_get_controller_info(){
   }
 
 
-  contr_info = *(vg_vbe_contr_info_t*)map.virt;
+  contr_info.VBESignature = ((vg_vbe_contr_info_t*)map.virt)->VBESignature;
+  contr_info.VBEVersion = *((vg_vbe_contr_info_t*)map.virt)->VBEVersion;
+  contr_info.OEMString = *((vg_vbe_contr_info_t*)map.virt)->OEMString;
+  contr_info.VideoModeList = *((vg_vbe_contr_info_t*)map.virt)->VideoModeList;
+  contr_info.TotalMemory = *((vg_vbe_contr_info_t*)map.virt)->TotalMemory;
+  contr_info.OEMVendorNamePtr = *((vg_vbe_contr_info_t*)map.virt)->OEMVendorNamePtr;
+  contr_info.OEMProductNamePtr = *((vg_vbe_contr_info_t*)map.virt)->OEMProductNamePtr;
+  contr_info.OEMProductRevPtr = *((vg_vbe_contr_info_t*)map.virt)->OEMProductRevPtr;
 
   if (vg_display_vbe_contr_info (&contr_info) != OK){
   	printf("vbe_get_controller_info: failed displaying VBE controller information \n");
