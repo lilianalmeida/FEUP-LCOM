@@ -1,7 +1,6 @@
 #include <lcom/lcf.h>
 #include <stdint.h>
 #include "sprite.h"
-//#include "video_gr.h"
 #include "macro.h"
 
 

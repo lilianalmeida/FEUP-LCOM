@@ -292,7 +292,6 @@ int (video_test_move)(const char *xpm[], uint16_t xi, uint16_t yi, uint16_t xf, 
   }
 
   uint32_t counter_t =0;
-
   while (scanByte != ESC_CODE) {
     /* Get a request message. */
     if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) {
@@ -304,7 +303,7 @@ int (video_test_move)(const char *xpm[], uint16_t xi, uint16_t yi, uint16_t xf, 
         case HARDWARE: /* hardware interrupt notification */
         if (msg.m_notify.interrupts & irq_set_timer) {/* subscribed interrupt */
           timer_int_handler();
-          if (counter_t % (j) == 0) {
+          if (counter_t % j == 0) {
           	move_sprite(sprite, xi, yi, xf, yf, speed);
           }
     	}	
