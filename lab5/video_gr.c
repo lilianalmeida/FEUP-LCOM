@@ -44,6 +44,11 @@ buf = map.phys;
   	return 1;
   }
 
+  if(r.u.b.ah != 0){
+  	lm_free(&map);
+  	return 1;
+  }
+
   *vmi_p = *(vbe_mode_info_t *)map.virt;
 /* vmi_p->PhysBasePtr = ((vbe_mode_info_t *) map.virt)->PhysBasePtr;
 	vmi_p->XResolution = ((vbe_mode_info_t *) map.virt)->XResolution;
@@ -263,8 +268,8 @@ void move_sprite(Sprite *sprite, uint16_t xi, uint16_t yi, uint16_t xf, uint16_t
 	// if the speed is negative 
 	if (speed < 0) { 
      	if (sprite->x < xf && yi == yf) {
-         	erase_sprite(sprite);
             sprite->x++;
+            erase_sprite(sprite);
             draw_sprite(sprite);
 
         } else if (xi == xf && sprite->y < yf) {
