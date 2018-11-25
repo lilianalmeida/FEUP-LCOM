@@ -114,13 +114,18 @@ int col(uint16_t x, uint16_t y, uint32_t color){
 		printf("Error: that pixel does not exist!", 0);
 		return 1;
 	}
+	int bytes_pixel = bits_per_pixel / 8;
 
-	//indexed
-	video_mem [(y*h_res*bits_per_pixel) / 8 + (x*bits_per_pixel) / 8] = color;
-	/*video_mem [((y*h_res*bits_per_pixel) / 8 + (x*bits_per_pixel) / 8) + redFieldPosition] = ((color >> redFieldPosition) % (1 << redMaskSize));
-	video_mem [((y*h_res*bits_per_pixel) / 8 + (x*bits_per_pixel) / 8) + greenFieldPosition] = ((color >> greenFieldPosition) % (1 << greenMaskSize));
-	video_mem [((y*h_res*bits_per_pixel) / 8 + (x*bits_per_pixel) / 8) + blueFieldPosition] = ((color >> blueFieldPosition) % (1 << blueMaskSize));
-	*/
+	if (bits_per_pixel == 15){
+		bytes_pixel = 2;
+	}
+	uint32_t col_tmp = color;
+	int video_tmp = 0;
+
+	for(int i = 0; i < bytes_pixel; i++, video_tmp++){
+		video_mem [(y*h_res*bytes_pixel) + (x*bytes_pixel) + video_tmp] = col_tmp;
+		col_tmp = col_tmp >> 8;
+	}
 	return 0;
 }
 
@@ -153,22 +158,53 @@ int (vg_draw_rectangle)(uint16_t x,uint16_t y,uint16_t width, uint16_t height, u
 int drawPattern (uint8_t no_rectangles, uint32_t first, uint8_t step){
 	int rec_width = h_res / no_rectangles;
 	int rec_height = v_res / no_rectangles;
-	//uint16_t x = 0, y = 0;
+	uint32_t red_mask, blue_mask, green_mask, R, G, B;
+
 	static int color;
 
 	for (unsigned int y = 0, i = 0; i < no_rectangles; i++, y += rec_height){
 		for (unsigned int x = 0, j = 0; j < no_rectangles; j++, x += rec_width){
 			
-			color = (first + (i * no_rectangles + j) * step) % (1 << bits_per_pixel);
+			if (graphic_mode == MODE105)
+				color = (first + (i * no_rectangles + j) * step) % (1 << bits_per_pixel);
+			else{
+				if (graphic_mode == MODE110){
+					red_mask = MASK_110_11A;
+					green_mask = MASK_110_11A;
+					blue_mask = MASK_110_11A;
+				}else if (graphic_mode == MODE115 || graphic_mode == MODE14C){
+					red_mask = MASK_115_14C;
+					green_mask = MASK_115_14C;
+					blue_mask = MASK_115_14C;
+				}else if (graphic_mode == MODE11A){
+					red_mask = MASK_110_11A;
+					green_mask = GREEN_MASK_11A;
+					blue_mask = MASK_110_11A;
+				}else {
+					return 1;
+				}
+
+				R = (((first >> redFieldPosition) & red_mask) + j * step) % (1 << redMaskSize);
+
+          		G = (((first >> greenFieldPosition) & green_mask) + i * step) % (1 << greenMaskSize);
+
+         		B = (((first >> blueFieldPosition) & blue_mask) + (i + j) * step) % (1 << blueMaskSize);
+
+         		color = ((R << redFieldPosition) | (G << greenFieldPosition) | (B << blueFieldPosition));
+			}
+			
 			if (vg_draw_rectangle(x, y, rec_width, rec_height, color) != OK){
 				return 1;
 			}
 
-		}
-		
+		}	
 	}
+
+
 	return 0;
 }
+          
+
 
 int drawSprite (const char *xpm[], uint16_t x, uint16_t y){
 	uint16_t prev_x = x;
@@ -252,24 +288,36 @@ void move_sprite(Sprite *sprite, uint16_t xi, uint16_t yi, uint16_t xf, uint16_t
 
         if (sprite->x < xf && yi == yf) {
             erase_sprite(sprite);
+            if ((sprite->x + speed) > xf){
+        		sprite->x = xf;
+        	}
             sprite->x += sprite->xspeed;
             draw_sprite(sprite);
         }
 
         else if (xi == xf && sprite->y < yf) {
         	erase_sprite(sprite);
+        	if ((sprite->y + speed) > yf){
+        		sprite->y = yf;
+        	}
             sprite->y += sprite->yspeed;
             draw_sprite(sprite);
         }
 
         else if (sprite->x > xf && yi == yf) {
             erase_sprite(sprite);
+            if ((sprite->x + speed) > xf){
+        		sprite->x = xf;
+        	}
             sprite->x += -1 * sprite->xspeed;
             draw_sprite(sprite);
         }
 
         else if (xi == xf && sprite->y > yf) {
             erase_sprite(sprite);
+            if ((sprite->y + speed) > yf){
+        		sprite->y = yf;
+        	}
         	sprite->y += -1 * sprite->yspeed;
             draw_sprite(sprite);
         }

@@ -42,7 +42,7 @@ int (video_test_init)(uint16_t mode, uint8_t delay) {
 		return 1;
 	}
 
-	tickdelay (micros_to_ticks (delay*1000000));
+	tickdelay (micros_to_ticks (delay*DELAY_TOS));
 	
 	if (vg_exit() != OK){
 		printf("Error:failed to set default Minix 3 text mode\n");
@@ -254,7 +254,7 @@ int (video_test_xpm)(const char *xpm[], uint16_t x, uint16_t y){
 int (video_test_move)(const char *xpm[], uint16_t xi, uint16_t yi, uint16_t xf, uint16_t yf, int16_t speed, uint8_t fr_rate){
 
   uint8_t bit_no_kbd, bit_no_timer;
-  int ipc_status, j = 60/fr_rate;
+  int ipc_status, j = sys_hz()/fr_rate;
   message msg;
 
   Sprite *sprite;
@@ -292,7 +292,11 @@ int (video_test_move)(const char *xpm[], uint16_t xi, uint16_t yi, uint16_t xf, 
   }
 
   uint32_t counter_t =0;
+
+  draw_sprite(sprite);
+
   while (scanByte != ESC_CODE) {
+
     /* Get a request message. */
     if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) {
       printf("driver_receive failed with: %d\n", r);
@@ -302,11 +306,15 @@ int (video_test_move)(const char *xpm[], uint16_t xi, uint16_t yi, uint16_t xf, 
       switch (_ENDPOINT_P(msg.m_source)) {
         case HARDWARE: /* hardware interrupt notification */
         if (msg.m_notify.interrupts & irq_set_timer) {/* subscribed interrupt */
-          timer_int_handler();
-          if (counter_t % j == 0) {
-          	move_sprite(sprite, xi, yi, xf, yf, speed);
-          }
-    	}	
+          	timer_int_handler();
+
+            if((counter_t % j) == 0 && speed >= 0){
+      			move_sprite(sprite, xi, yi, xf, yf, speed);
+    		}
+    		else if((counter_t *j) % abs(speed) == 0 && speed < 0){
+      			move_sprite(sprite, xi, yi, xf, yf, speed);
+    		}
+    	}
         if (msg.m_notify.interrupts & irq_set_kbd) { /* subscribed interrupt */
 
           kbc_ih();
