@@ -17,18 +17,24 @@ static uint8_t 	blueFieldPosition;
 static uint16_t graphic_mode;
 
 int vbe_get_mode_inf(uint16_t mode, vbe_mode_info_t* vmi_p){		
-  
-  struct reg86u r;
-  mmap_t map;
+   mmap_t map;
   phys_bytes buf;
-
-  memset(&r, 0, sizeof(r));	/* zero the structure */
 
   if (lm_alloc(sizeof(vbe_mode_info_t), &map) == NULL) {
   	printf("vbe_get_mode_inf: failed to allocate memory \n");
   	return 1;
   }
-  
+
+  *vmi_p = *(vbe_mode_info_t *)map.virt;
+/* vmi_p->PhysBasePtr = ((vbe_mode_info_t *) map.virt)->PhysBasePtr;
+	vmi_p->XResolution = ((vbe_mode_info_t *) map.virt)->XResolution;
+	vmi_p->YResolution = ((vbe_mode_info_t *) map.virt)->YResolution;
+	vmi_p->BitsPerPixel = ((vbe_mode_info_t *) map.virt)->BitsPerPixel;
+ */
+
+   struct reg86u r;
+
+  memset(&r, 0, sizeof(r));	/* zero the structure */
   buf = map.phys;
 
   r.u.w.ax = VBE_MODE_INFO; /* VBE get mode info */
@@ -44,12 +50,6 @@ int vbe_get_mode_inf(uint16_t mode, vbe_mode_info_t* vmi_p){
   	return 1;
   }
 
-  *vmi_p = *(vbe_mode_info_t *)map.virt;
-/* vmi_p->PhysBasePtr = ((vbe_mode_info_t *) map.virt)->PhysBasePtr;
-	vmi_p->XResolution = ((vbe_mode_info_t *) map.virt)->XResolution;
-	vmi_p->YResolution = ((vbe_mode_info_t *) map.virt)->YResolution;
-	vmi_p->BitsPerPixel = ((vbe_mode_info_t *) map.virt)->BitsPerPixel;
- */
   lm_free(&map);
 
   return 0;
@@ -57,17 +57,6 @@ int vbe_get_mode_inf(uint16_t mode, vbe_mode_info_t* vmi_p){
 
 void *(vg_init)(uint16_t mode){
 	graphic_mode = mode;
-
-	struct reg86u reg86;
-	memset(&reg86, 0, sizeof(reg86));
-	///por em constantes no macros.h estas variaveis todas
-	reg86.u.w.ax = SET_VBE; // VBE call, function 02 -- set VBE mode
-	reg86.u.w.bx = BIT(14)|mode; // set bit 14: linear framebuffer
-	reg86.u.b.intno = VBE_INT;
-	if( sys_int86(&reg86) != OK ) {
-		printf("set_vbe_mode: sys_int86() failed \n");
-		return NULL;
-	}
 
 	if (lm_init(1) == NULL) {
   		printf("vbe_get_mode_inf: failed to initialize low memory \n");
@@ -104,6 +93,17 @@ void *(vg_init)(uint16_t mode){
 
 	if(video_mem == MAP_FAILED)
 		panic("couldn't map video memory");
+
+	struct reg86u reg86;
+	memset(&reg86, 0, sizeof(reg86));
+
+	reg86.u.w.ax = SET_VBE; // VBE call, function 02 -- set VBE mode
+	reg86.u.w.bx = BIT(14)|mode; // set bit 14: linear framebuffer
+	reg86.u.b.intno = VBE_INT;
+	if( sys_int86(&reg86) != OK ) {
+		printf("set_vbe_mode: sys_int86() failed \n");
+		return NULL;
+	}
 
 	return video_mem;
 }
