@@ -19,23 +19,17 @@ static uint16_t graphic_mode;
 int vbe_get_mode_inf(uint16_t mode, vbe_mode_info_t* vmi_p){		
    mmap_t map;
   phys_bytes buf;
+    struct reg86u r;
+
+  memset(&r, 0, sizeof(r));	/* zero the structure */
+ 
 
   if (lm_alloc(sizeof(vbe_mode_info_t), &map) == NULL) {
   	printf("vbe_get_mode_inf: failed to allocate memory \n");
   	return 1;
   }
 
-  *vmi_p = *(vbe_mode_info_t *)map.virt;
-/* vmi_p->PhysBasePtr = ((vbe_mode_info_t *) map.virt)->PhysBasePtr;
-	vmi_p->XResolution = ((vbe_mode_info_t *) map.virt)->XResolution;
-	vmi_p->YResolution = ((vbe_mode_info_t *) map.virt)->YResolution;
-	vmi_p->BitsPerPixel = ((vbe_mode_info_t *) map.virt)->BitsPerPixel;
- */
-
-   struct reg86u r;
-
-  memset(&r, 0, sizeof(r));	/* zero the structure */
-  buf = map.phys;
+buf = map.phys;
 
   r.u.w.ax = VBE_MODE_INFO; /* VBE get mode info */
   /* translate the buffer linear address to a far pointer */
@@ -49,6 +43,12 @@ int vbe_get_mode_inf(uint16_t mode, vbe_mode_info_t* vmi_p){
   	lm_free(&map);
   	return 1;
   }
+
+  *vmi_p = *(vbe_mode_info_t *)map.virt;
+/* vmi_p->PhysBasePtr = ((vbe_mode_info_t *) map.virt)->PhysBasePtr;
+	vmi_p->XResolution = ((vbe_mode_info_t *) map.virt)->XResolution;
+	vmi_p->YResolution = ((vbe_mode_info_t *) map.virt)->YResolution;
+	vmi_p->BitsPerPixel = ((vbe_mode_info_t *) map.virt)->BitsPerPixel;*/
 
   lm_free(&map);
 
@@ -114,12 +114,9 @@ int col(uint16_t x, uint16_t y, uint32_t color){
 		printf("Error: that pixel does not exist!", 0);
 		return 1;
 	}
-	int bytes = bits_per_pixel/8;
+
 	//indexed
-	//video_mem [(y*h_res*bits_per_pixel) / 8 + (x*bits_per_pixel) / 8] = color;
-	for (int i= 0; i < bytes; i++){
-		video_mem [(y*h_res*bits_per_pixel) / 8 + (x*bits_per_pixel) / 8 + i] = color;
-	}
+	video_mem [(y*h_res*bits_per_pixel) / 8 + (x*bits_per_pixel) / 8] = color;
 	/*video_mem [((y*h_res*bits_per_pixel) / 8 + (x*bits_per_pixel) / 8) + redFieldPosition] = ((color >> redFieldPosition) % (1 << redMaskSize));
 	video_mem [((y*h_res*bits_per_pixel) / 8 + (x*bits_per_pixel) / 8) + greenFieldPosition] = ((color >> greenFieldPosition) % (1 << greenMaskSize));
 	video_mem [((y*h_res*bits_per_pixel) / 8 + (x*bits_per_pixel) / 8) + blueFieldPosition] = ((color >> blueFieldPosition) % (1 << blueMaskSize));
@@ -129,9 +126,12 @@ int col(uint16_t x, uint16_t y, uint32_t color){
 
 int (vg_draw_hline)	(uint16_t x, uint16_t y, uint16_t len, uint32_t color){
 	for(int i = 0; i < len; x++,i++){
-			if(col(x, y ,color) != OK){
-				return 1;
-			}
+		if (x >= h_res ){
+			continue;
+		}
+		if(col(x, y ,color) != OK){
+			return 1;
+		}
 	}
 	return 0;
 }
@@ -139,6 +139,9 @@ int (vg_draw_hline)	(uint16_t x, uint16_t y, uint16_t len, uint32_t color){
 int (vg_draw_rectangle)(uint16_t x,uint16_t y,uint16_t width, uint16_t height, uint32_t color){
 
 	for(int i = 0; i< height; y++,i++){
+		if (y  >= v_res ){
+			break;
+		}
 		if(vg_draw_hline(x,y, width, color)!= OK){
 			return 1;
 		}
@@ -194,27 +197,41 @@ int drawSprite (const char *xpm[], uint16_t x, uint16_t y){
 
 void draw_sprite(Sprite *sp) {
   uint32_t color;
-  int y = sp->height, x = sp->width, i, j, a = 0;
+  int height = sp->height, width = sp->width, a = 0, y = sp->y, x = sp->x;
 
-  for (i = 0; i < y; i++) {
-    for (j = 0; j < x; j++) {
+  for (int i = 0; i < height; i++, y++) {
+  	if (y >= v_res ){
+				break;
+		}
+    for (int j = 0; j < width; j++, x++) {
+    	if (x >= h_res ){
+				continue;
+		}
       color = sp->map[a];
 
-      col((sp->x+j), (sp->y+i), color);
+      col(x, y, color);
 
       a++;
     }
+    x = sp->x;
   }
 
 }
 
 void erase_sprite(Sprite *sp) {
-  int y = sp->height, x = sp->width, i, j;
+  int height = sp->height, width = sp->width, y = sp->y, x = sp->x;
 
-  for (i = 0; i < y; i++) {
-    for (j = 0; j < x; j++) {
-    	col((sp->x+j), (sp->y+i), BACKGROUNDCOLOR);
+  for (int i = 0; i < height; i++, y++) {
+  	if (y  >= v_res ){
+			break;
+		}
+    for (int j = 0; j < width; j++, x++) {
+    	if (x >= h_res ){
+			continue;
+		}
+    	col(x, y, BACKGROUNDCOLOR);
     }
+  	x = sp->x;
   }
 }
 
@@ -244,7 +261,7 @@ void move_sprite(Sprite *sprite, uint16_t xi, uint16_t yi, uint16_t xf, uint16_t
 
     // if speed is positive
     } else { 
-
+  
         if (sprite->x < xf && yi == yf) {
             erase_sprite(sprite);
             sprite->x += sprite->xspeed;
