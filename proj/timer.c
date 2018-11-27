@@ -4,21 +4,21 @@
 #include <stdint.h>
 
 #include "i8254.h"
+#include "macros.h"
 
 //global variable
-int hook_id = 0x00;
-
+int hook_id_t = 0x02;
 
 //// 7.2 ////
 int (timer_set_frequency)(uint8_t timer, uint32_t freq) {
 
 	uint8_t control_byte;
 	uint8_t msb, lsb, st;
-    
-    if(freq >= TIMER_FREQ || freq < 19){
-        printf("Frequency not valid. ",0);
-        return 1;
-    }
+
+	if(freq >= TIMER_FREQ || freq < 19){
+		printf("Frequency not valid. ",0);
+		return 1;
+	}
 
 	int erro = timer_get_conf(timer, &st); //read the timer configuration
 	if (erro != OK) {
@@ -58,9 +58,9 @@ int (timer_set_frequency)(uint8_t timer, uint32_t freq) {
 //// 7.3 ////
 int (timer_subscribe_int)(uint8_t * bit_no) {
 
-	*bit_no = BIT(hook_id);
+	*bit_no = hook_id_t;
 
-	int erro = sys_irqsetpolicy(TIMER0_IRQ, IRQ_REENABLE, &hook_id);
+	int erro = sys_irqsetpolicy(TIMER0_IRQ, IRQ_REENABLE, &hook_id_t);
 	if (erro != OK) {
 		printf("Error in sys_irqsetpolicy", 0);
 		return erro;
@@ -71,7 +71,7 @@ int (timer_subscribe_int)(uint8_t * bit_no) {
 
 int (timer_unsubscribe_int)() {
 
-	int erro = sys_irqrmpolicy(&hook_id);
+	int erro = sys_irqrmpolicy(&hook_id_t);
 	if (erro != OK) {
 		printf("Error in sys_irqrmpolicy", 0);
 		return erro;
@@ -81,7 +81,7 @@ int (timer_unsubscribe_int)() {
 }
 
 void (timer_int_handler)() {
-	counter++;
+	counter_t++;
 }
 
 
@@ -110,32 +110,32 @@ int (timer_get_conf)(uint8_t timer, uint8_t *st) {
 }
 
 int (timer_display_conf)(uint8_t timer, uint8_t st, enum timer_status_field field) {
-    
+
 	union timer_status_field_val uni;
 
 	switch (field) {
-	case all:
+		case all:
 		uni.byte = st;
 		break;
 
-	case initial:
+		case initial:
 		uni.in_mode = (st & (BIT(5) | BIT(4))) >> 4;
 		break;
 
-	case mode:
+		case mode:
 		uni.count_mode = (st & (BIT(3) | BIT(2) | BIT(1))) >> 1;
 		if (uni.count_mode == 0x06) //when 110 -> operating mode is 2
-			uni.count_mode = 0x02;
+		uni.count_mode = 0x02;
 
 		if (uni.count_mode == 0x07) //when 111 -> operating mode is 3
-			uni.count_mode = 0x03;
+		uni.count_mode = 0x03;
 		break;
 
-	case base:
+		case base:
 		uni.bcd = st & BIT(0);
 		break;
-    default:
-        printf("timer_status_field not recognized",0);
+		default:
+		printf("timer_status_field not recognized",0);
 	}
 
 	int erro = timer_print_config(timer, field, uni);
