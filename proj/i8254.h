@@ -9,8 +9,6 @@
 
 #define TIMER_FREQ  1193182    /**< @brief clock frequency for timer in PC and AT */
 
-#define BIT(n) (0x01<<(n))
-
 #define TIMER0_IRQ	        0    /**< @brief Timer 0 IRQ line */
 
 /* I/O port addresses */
@@ -35,7 +33,7 @@
 
 #define TIMER_LSB		BIT(4)  /**< @brief Initialize Counter LSB only */
 #define TIMER_MSB		BIT(5)  /**< @brief Initialize Counter MSB only */
-#define TIMER_LSB_MSB		(TIMER_LSB | TIMER_MSB) /**< @brief Initialize LSB first and MSB afterwards */ 
+#define TIMER_LSB_MSB		(TIMER_LSB | TIMER_MSB) /**< @brief Initialize LSB first and MSB afterwards */
 
 /* Operating mode: bits 3, 2 and 1 */
 
@@ -54,6 +52,6 @@
 #define TIMER_RB_SEL(n)         BIT((n)+1)
 /**@}*/
 
-extern uint32_t counter; //global variable
+extern uint32_t counter_t; //global variable
 
 #endif /* _LCOM_I8254_H */

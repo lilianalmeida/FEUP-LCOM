@@ -1,8 +1,8 @@
-PROG=lab2 
+PROG=proj
 
-SRCS = lab2.c timer.c
+SRCS = proj.c
 
-CPPFLAGS += -pedantic
+CPPFLAGS += -pedantic #-D __LCOM_OPTIMIZED__
 
 DPADD += ${LIBLCF}
 LDADD += -llcf
