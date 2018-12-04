@@ -1,6 +1,7 @@
 #ifndef _VBE_MACROS_H_
 #define _VBE_MACROS_H_
 
+#define BIT(n) 		(0x01 << (n))
 #define PB2BASE(x)	(((x) >> 4) &  0x0F000)
 
 #define SET_VBE						0x4F02
@@ -20,7 +21,6 @@
 #define GREEN_MASK_11A				0x003F
 
 #define DELAY_TOS 					1000000
-
 
 //Bitmap
 

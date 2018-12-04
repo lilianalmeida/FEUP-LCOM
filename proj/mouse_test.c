@@ -1,13 +1,13 @@
 #include <lcom/lcf.h>
 #include <lcom/timer.h>
 #include "mouse_test.h"
-#include "macros.h"
+#include "mouse_macros.h"
 #include "i8254.h"
 
 static int hook_id = 0x01;
 unsigned int byteNumber = 0;
 static uint32_t byte_array[3];
-bool kbc_ih_error = false;
+bool mouse_ih_error = false;
 uint32_t counter_t = 0;
 state_t state = INIT;
 
@@ -108,7 +108,7 @@ void (mouse_ih)(void){
 
 	if(sys_inb(OUT_BUFF,&byte) != 0){//reads output buffer
 		printf("Error reading output buffer\n",0 );
-		kbc_ih_error = true;
+		mouse_ih_error = true;
 		return;
 	}
 
@@ -117,11 +117,11 @@ void (mouse_ih)(void){
 
 	if(!((MOUSE_BIT3 & byte_array[0])>> 3)){ //tests bit(3) of the first byte
 		printf("Error reading mouse packet\n",0 );
-		kbc_ih_error = true;
+		mouse_ih_error = true;
 		return;
 	}
 
-	kbc_ih_error = false;
+	mouse_ih_error = false;
 	return;
 }
 
