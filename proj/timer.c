@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 #include "i8254.h"
-#include "macros.h"
+//#include "i8042.h"
 
 //global variable
 int hook_id_t = 0x02;
