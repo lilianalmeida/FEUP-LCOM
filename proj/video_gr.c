@@ -377,10 +377,10 @@ void doubleBuffCall(){
 }
 
 int getHorResolution(){
-  return (int)v_res;
+  return (int)h_res;
 }
 int getVerResolution(){
-  return (int)h_res;
+  return (int)v_res;
 }
 char *getGraphicsBuffer(){
   return (char*)drawingBuffer;
