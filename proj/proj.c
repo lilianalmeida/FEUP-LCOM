@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
   // handles control over to LCF
   // [LCF handles command line arguments and invokes the right function]
   if (lcf_start(argc, argv))
-    return 1;
+  return 1;
 
   // LCF clean up tasks
   // [must be the last statement before return]
@@ -38,65 +38,110 @@ int main(int argc, char *argv[]) {
 
 int (proj_main_loop)(int UNUSED(argc), char *UNUSED(argv[])) {
 
-  uint8_t bit_no;
-	int ipc_status;
-	message msg;
-	uint32_t r;
+  uint8_t timer_bit_no,kbc_bit_no;
+  int ipc_status;
+  message msg;
+  uint32_t r;
 
-	if(keyboard_subscribe(&bit_no) != OK){
-		printf("Error enabling keyboard interrupts",0);
-		return 1;
-	}
-	uint32_t irq_set = BIT(bit_no);
+  if(keyboard_subscribe(&kbc_bit_no) != OK){
+    printf("Error enabling keyboard interrupts",0);
+    return 1;
+  }
+  if(timer_subscribe_int(&timer_bit_no) != OK){
+    printf("Error enabling timer interrupts",0);
+    return 1;
+  }
+  uint32_t kbc_irq_set = BIT(kbc_bit_no);
+  uint32_t timer_irq_set = BIT(timer_bit_no);
 
-	if(vg_init(0x117) == NULL){
-		printf("Error setting graphics mode\n");
-		return 1;
-	}
+  if(vg_init(0x117) == NULL){
+    printf("Error setting graphics mode\n");
+    return 1;
+  }
 
   Bitmap* bmp = loadBitmap("/home/lcom/labs/proj/bmp/Minix.bmp");
   Bitmap* field = loadBitmap("/home/lcom/labs/proj/bmp/field.bmp");
 
+  int y = 20,x=20;
   drawBitmap(field,0, 0, ALIGN_LEFT);
-  drawBitmap(bmp,45, 45, ALIGN_LEFT);
-
+  drawBitmap(bmp,x, y, ALIGN_LEFT);
   doubleBuffCall();
 
-	while (scanByte != ESC_CODE) {
-		/* Get a request message. */
-		if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) {
-			printf("driver_receive failed with: %d\n", r);
-			continue;
-		}
-		if (is_ipc_notify(ipc_status)) { /* received notification */
-			switch (_ENDPOINT_P(msg.m_source)) {
-			case HARDWARE: /* hardware interrupt notification */
-				if (msg.m_notify.interrupts & irq_set) { /* subscribed interrupt */
+  while (scanByte != ESC_CODE) {
+    /* Get a request message. */
+    if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) {
+      printf("driver_receive failed with: %d\n", r);
+      continue;
+    }
+    if (is_ipc_notify(ipc_status)) { /* received notification */
+      switch (_ENDPOINT_P(msg.m_source)) {
+        case HARDWARE: /* hardware interrupt notification */
 
-				 	kbc_ih();
+        if (msg.m_notify.interrupts & kbc_irq_set) { /* subscribed interrupt */
 
-					if (kbc_ih_error) {
-            			kbc_ih_error = false;
-            			continue;
-					}
+          kbc_ih();
 
-					tickdelay(micros_to_ticks(DELAY_US));
-				}
-				break;
-			default:
-				break; /* no other notifications expected: do nothing */
-			}
-		} else { /* received a standard message, not a notification */
-			/* no standard messages expected: do nothing */
-		}
-	}
+          if (kbc_ih_error) {
+            kbc_ih_error = false;
+            continue;
+          }
 
-	if (keyboard_unsubscribe() != 0) {
-		printf("Error disabling keyboard interrupts\n");
-		return 1;
-	}
+          tickdelay(micros_to_ticks(DELAY_US));
+        }
+        if (msg.m_notify.interrupts & timer_irq_set){
+          if(counter_t % 60 == 0){
 
-	vg_exit();
-	printf("Set to text mode\n");
+            if(scanByte==0x0011){
+              y-= 5;
+              drawBitmap(field,0, 0, ALIGN_LEFT);
+              drawBitmap(bmp,x, y, ALIGN_LEFT);
+            }
+            if(scanByte==0x001F){
+              y+= 5;
+              x+=5;
+              drawBitmap(field,0, 0, ALIGN_LEFT);
+              drawBitmap(bmp,x, y, ALIGN_LEFT);
+            }
+            if(scanByte==0x001E){
+              x-= 5;
+              if(x < 0){
+                x+=5;
+                drawBitmap(field,0, 0, ALIGN_LEFT);
+                drawBitmap(bmp,x, y, ALIGN_LEFT);
+              }
+              drawBitmap(field,0, 0, ALIGN_LEFT);
+              drawBitmap(bmp,x, y, ALIGN_LEFT);
+            }
+            if(scanByte==0x0020){
+              x+= 5;
+              if(x + bmp->bitmapInfoHeader.width > getHorResolution()/2){
+                x-=5;
+                drawBitmap(field,0, 0, ALIGN_LEFT);
+                drawBitmap(bmp,x, y, ALIGN_RIGHT);
+              }
+              drawBitmap(field,0, 0, ALIGN_LEFT);
+              drawBitmap(bmp,x, y, ALIGN_LEFT);
+            }
+            doubleBuffCall();
+
+          }
+
+        }
+        break;
+        default:
+        break; /* no other notifications expected: do nothing */
+      }
+    } else { /* received a standard message, not a notification */
+      /* no standard messages expected: do nothing */
+    }
+  }
+
+  if (keyboard_unsubscribe() != 0) {
+    printf("Error disabling keyboard interrupts\n");
+    return 1;
+  }
+
+  vg_exit();
+  printf("Set to text mode\n");
   return 0;
 }
