@@ -22,9 +22,13 @@
 #define OBF 						BIT(0)
 #define AUX							BIT(5)
 
-#define ESC_CODE 					0x81
-
+#define ESC_CODE 				0x81
+#define KEY_W           0x0011
+#define KEY_A           0x001E
+#define KEY_S           0x001F
+#define KEY_D           0x0020
+#define KEY_ENTER       0x001C
 
 #define DELAY_US 					20000
 
-#endif 
+#endif

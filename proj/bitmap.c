@@ -135,3 +135,57 @@ Bitmap* loadBitmap(const char* filename) {
     free(bmp->bitmapData);
     free(bmp);
   }
+
+  Sprite* createSprite(Bitmap* bmp, uint32_t x, uint32_t y, uint32_t xspeed, uint32_t yspeed){
+    Sprite* sp = (Sprite*)malloc(sizeof(Sprite));
+    sp->bmp = bmp;
+    sp->x = x;
+    sp->y = y;
+    sp->xspeed = xspeed;
+    sp->yspeed = yspeed;
+    sp->height = bmp->bitmapInfoHeader.height;
+    sp->width = bmp->bitmapInfoHeader.width;
+    sp->align = ALIGN_LEFT;
+    return sp;
+  }
+
+  void drawSprite( Sprite* sp){
+    if (sp->bmp == NULL)
+    return;
+
+    int width = sp->width;
+    int drawWidth = width;
+    int height = sp->bmp->bitmapInfoHeader.height;
+    uint32_t x = sp->x;
+    uint32_t y = sp->y;
+
+    if (drawWidth > getHorResolution())
+    drawWidth = getHorResolution();
+   else if (x + drawWidth >= (uint32_t)getHorResolution()) {
+    drawWidth = getHorResolution() - x;
+  }
+
+  char* bufferStartPos;
+  unsigned char* imgStartPos;
+
+  int i;
+  for (i = 0; i < height; i++) {
+    int pos = y + height - 1 - i;
+
+    if (pos < 0 || pos >= getVerResolution())
+    continue;
+
+    bufferStartPos = getGraphicsBuffer();
+    bufferStartPos += x * 2 + pos * getHorResolution() * 2;
+
+    imgStartPos =(unsigned char*)( sp->bmp->bitmapData) + i * width * 2;
+
+   int j;
+    for(j = 0; j < drawWidth * 2; j += 2){
+      if(imgStartPos[j]!=0x1F && imgStartPos[j+1] != 0xF8){
+        bufferStartPos[j] = imgStartPos[j];
+        bufferStartPos[j+1] = imgStartPos[j+1];
+      }
+    }
+  }
+}
