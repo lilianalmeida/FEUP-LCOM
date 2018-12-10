@@ -112,11 +112,17 @@ int start_main_menu (){
       /* no standard messages expected: do nothing */
     }
   }
+  
+  if (timer_unsubscribe_int() != 0) {
+    printf("Error disabling timer interrupts\n");
+    return 1;
+  }
 
   if (keyboard_unsubscribe() != 0) {
     printf("Error disabling keyboard interrupts\n");
     return 1;
   }
+
 
   vg_exit();
   printf("Set to text mode\n");
