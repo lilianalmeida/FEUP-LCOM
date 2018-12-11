@@ -15,7 +15,12 @@ typedef enum{SINGLE_PL, MULTI_PL, HIGHSCORE, EXIT}menu_options;
 static menu_options opt = SINGLE_PL;
 static uint32_t timer_irq_set;
 static uint32_t kbc_irq_set;
-
+uint32_t getKBC_IRQ(){
+  return kbc_irq_set;
+}
+uint32_t getTIMER_IRQ(){
+  return timer_irq_set;
+}
 int start_main_menu (){
   uint8_t timer_bit_no,kbc_bit_no;
   int ipc_status;
@@ -67,7 +72,8 @@ int start_main_menu (){
           tickdelay(micros_to_ticks(DELAY_US));
         }
         if (msg.m_notify.interrupts & timer_irq_set){
-          if(counter_t % 60 == 0){
+          timer_int_handler();
+          if(counter_t % 2 == 0){
             if(scanByte==KEY_S){
               opt =((opt + 1) % (EXIT+1));
               printf("%x option\n", opt);
@@ -100,7 +106,7 @@ int start_main_menu (){
             drawSprite(selector);
             doubleBuffCall();
 
-            tickdelay(micros_to_ticks(100000));
+            tickdelay(micros_to_ticks(90000));
           }
 
         }
@@ -112,7 +118,7 @@ int start_main_menu (){
       /* no standard messages expected: do nothing */
     }
   }
-  
+
   if (timer_unsubscribe_int() != 0) {
     printf("Error disabling timer interrupts\n");
     return 1;
@@ -122,7 +128,6 @@ int start_main_menu (){
     printf("Error disabling keyboard interrupts\n");
     return 1;
   }
-
 
   vg_exit();
   printf("Set to text mode\n");

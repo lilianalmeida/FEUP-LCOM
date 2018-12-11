@@ -7,6 +7,7 @@
 #include "vbe_macros.h"
 #include "i8254.h"
 #include "i8042.h"
+#include "main_menu.h"
 
 
 
@@ -14,16 +15,17 @@ void initGame(){
   int ipc_status;
   message msg;
   uint32_t r;
-  uint32_t kbc_irq_set = BIT(KEYBOARD_IRQ);
-  uint32_t timer_irq_set = BIT(TIMER0_IRQ);
+  uint32_t kbc_irq_set = getKBC_IRQ();
+  uint32_t timer_irq_set = getTIMER_IRQ();
 
-  Bitmap* bola = loadBitmap("/home/lcom/labs/proj/bmp/Bola.bmp");
+  Bitmap* ball_bmp = loadBitmap("/home/lcom/labs/proj/bmp/Bola.bmp");
   Bitmap* aim = loadBitmap("/home/lcom/labs/proj/bmp/Crosshair.bmp");
   Bitmap* field = loadBitmap("/home/lcom/labs/proj/bmp/Field.bmp");
-  drawBitmap(field,0,0, ALIGN_LEFT);
-  drawBitmap(bola,0,0, ALIGN_LEFT);
+  Sprite* bola = createSprite(ball_bmp, 20,20,0,0);
   Sprite* sp = createSprite(aim, 20,20,0,0);
+  drawBitmap(field,0,0, ALIGN_LEFT);
   drawSprite(sp);
+  drawSprite(bola);
   doubleBuffCall();
 
   while (scanByte != ESC_CODE) {
@@ -48,8 +50,15 @@ void initGame(){
           tickdelay(micros_to_ticks(DELAY_US));
         }
         if (msg.m_notify.interrupts & timer_irq_set){
+          timer_int_handler();
           if(counter_t % 2 == 0){
-
+            if(counter_t % 60 == 0){
+              bola->x = 0;
+              bola->y = 0;
+              printf("reset\n");
+            }
+            bola->x++;
+            bola->y++;
             if(scanByte==KEY_W){
               sp->y -=5;
             }
@@ -70,10 +79,11 @@ void initGame(){
               }
 
             }
+
             drawBitmap(field,0, 0, ALIGN_LEFT);
             drawSprite(sp);
+            drawSprite(bola);
             doubleBuffCall();
-
           }
 
         }
