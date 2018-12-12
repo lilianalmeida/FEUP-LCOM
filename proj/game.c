@@ -1,4 +1,6 @@
 #include <lcom/lcf.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "bitmap.h"
 #include "keyboard.h"
 #include "mouse_test.h"
@@ -9,9 +11,23 @@
 #include "i8042.h"
 #include "main_menu.h"
 
+int playerMovSpeed = 7;
+
+
+void movePlayer(Sprite* sp);
+
+void throwBall(Sprite* ball){
+  ball->x = 3* (uint32_t)getHorResolution()/4;
+  ball->y = (uint32_t)getVerResolution()/2;
+  printf("reset\n");
+  ball->xspeed = -((rand() % 3) + 5);
+  ball->yspeed = (rand() % 6) -3;
+}
 
 
 void initGame(){
+  time_t t;
+  srand((unsigned) time(&t));
   int ipc_status;
   message msg;
   uint32_t r;
@@ -21,11 +37,11 @@ void initGame(){
   Bitmap* ball_bmp = loadBitmap("/home/lcom/labs/proj/bmp/Bola.bmp");
   Bitmap* aim = loadBitmap("/home/lcom/labs/proj/bmp/Crosshair.bmp");
   Bitmap* field = loadBitmap("/home/lcom/labs/proj/bmp/Field.bmp");
-  Sprite* bola = createSprite(ball_bmp, 20,20,0,0);
+  Sprite* ball = createSprite(ball_bmp, 0,0,0,0);
   Sprite* sp = createSprite(aim, 20,20,0,0);
   drawBitmap(field,0,0, ALIGN_LEFT);
   drawSprite(sp);
-  drawSprite(bola);
+  drawSprite(ball);
   doubleBuffCall();
 
   while (scanByte != ESC_CODE) {
@@ -52,38 +68,28 @@ void initGame(){
         if (msg.m_notify.interrupts & timer_irq_set){
           timer_int_handler();
           if(counter_t % 2 == 0){
-            if(counter_t % 60 == 0){
-              bola->x = 0;
-              bola->y = 0;
-              printf("reset\n");
-            }
-            bola->x++;
-            bola->y++;
-            if(scanByte==KEY_W){
-              sp->y -=5;
-            }
-            if(scanByte==KEY_S){
-              sp->y +=5;
-            }
-            if(scanByte==KEY_A){
-              sp->x -=5;
-              if(sp->x < 3 ){
-                sp->x +=5;
-              }
-            }
-            if(scanByte==KEY_D){
-              sp->x +=5;
-              if(sp->x + sp->width > (uint32_t)getHorResolution()/2){
-                sp->x -=5;
 
-              }
+            if(ball->y < 1 || ball->y > (uint32_t)getVerResolution()|| ball->x < 1 || ball->x > (uint32_t) getHorResolution()){
+              throwBall(ball);
+            }
 
+            ball->x += ball->xspeed;
+            ball->y += ball->yspeed;
+
+            movePlayer(sp);
+            if(ball->colided){
+              ball->colided = false;
+              ball->x += 2* abs(ball->xspeed);
+              ball->xspeed = -ball->xspeed;
+              ball->yspeed = -ball->yspeed;
             }
 
             drawBitmap(field,0, 0, ALIGN_LEFT);
             drawSprite(sp);
-            drawSprite(bola);
+            drawSprite(ball);
             doubleBuffCall();
+
+
           }
 
         }
@@ -93,6 +99,47 @@ void initGame(){
       }
     } else { /* received a standard message, not a notification */
       /* no standard messages expected: do nothing */
+    }
+  }
+}
+
+
+void movePlayer(Sprite* sp){
+
+  if(scanByte==KEY_W){
+    sp->mov.MOVE_UP = true;;
+  }else if(scanByte==KEY_S){
+    sp->mov.MOVE_DOWN = true;
+  }else if(scanByte==KEY_A){
+    sp->mov.MOVE_LEFT = true;
+  }else if(scanByte==KEY_D){
+    sp->mov.MOVE_RIGHT = true;
+  }else if(scanByte==KEY_W_BREAK){
+    sp->mov.MOVE_UP = false;;
+  }else if(scanByte==KEY_S_BREAK){
+    sp->mov.MOVE_DOWN = false;
+  }else if(scanByte==KEY_A_BREAK){
+    sp->mov.MOVE_LEFT = false;
+  }else if(scanByte==KEY_D_BREAK){
+    sp->mov.MOVE_RIGHT = false;
+  }
+
+  if(sp->mov.MOVE_UP){
+    sp->y -=playerMovSpeed;
+  }
+  if(sp->mov.MOVE_DOWN){
+    sp->y +=playerMovSpeed;
+  }
+  if(sp->mov.MOVE_LEFT){
+    sp->x -=playerMovSpeed;
+    if(sp->x < 3 ){
+      sp->x +=playerMovSpeed;
+    }
+  }
+  if(sp->mov.MOVE_RIGHT){
+    sp->x +=playerMovSpeed;
+    if(sp->x + sp->width > (uint32_t)getHorResolution()/2){
+      sp->x -=playerMovSpeed;
     }
   }
 }

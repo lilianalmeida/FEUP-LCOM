@@ -117,7 +117,7 @@ Bitmap* loadBitmap(const char* filename) {
       if (pos < 0 || pos >= getVerResolution())
       continue;
 
-      bufferStartPos = getGraphicsBuffer();
+      bufferStartPos = (char*) getGraphicsBuffer();
       bufferStartPos += x * 2 + pos * getHorResolution() * 2;
 
       imgStartPos =(char*)( bmp->bitmapData) + xCorrection * 2 + i * width * 2;
@@ -146,6 +146,12 @@ Bitmap* loadBitmap(const char* filename) {
     sp->height = bmp->bitmapInfoHeader.height;
     sp->width = bmp->bitmapInfoHeader.width;
     sp->align = ALIGN_LEFT;
+    sp->colided = false;
+    sp->canColide = true;
+    sp->mov.MOVE_UP = false;
+    sp->mov.MOVE_LEFT = false;
+    sp->mov.MOVE_RIGHT = false;
+    sp->mov.MOVE_DOWN = false;
     return sp;
   }
 
@@ -165,7 +171,7 @@ Bitmap* loadBitmap(const char* filename) {
     drawWidth = getHorResolution() - x;
   }
 
-  char* bufferStartPos;
+  unsigned char* bufferStartPos;
   unsigned char* imgStartPos;
 
   int i;
@@ -182,10 +188,25 @@ Bitmap* loadBitmap(const char* filename) {
 
    int j;
     for(j = 0; j < drawWidth * 2; j += 2){
+      if((imgStartPos[j]!=0x1F && imgStartPos[j+1] != 0xF8) && (bufferStartPos[j]==0x00 && bufferStartPos[j+1] == 0x00))
+      {
+        if(sp->canColide){
+        sp->colided = true;
+        sp->canColide = false;
+        printf("NoColision\n" );
+      }
+
+      }
       if(imgStartPos[j]!=0x1F && imgStartPos[j+1] != 0xF8){
         bufferStartPos[j] = imgStartPos[j];
         bufferStartPos[j+1] = imgStartPos[j+1];
       }
     }
   }
+
+  if(sp->x > (uint32_t)(getHorResolution()/2) && !sp->canColide){
+    sp->canColide = true;
+    printf("CanColide\n" );
+  }
+
 }

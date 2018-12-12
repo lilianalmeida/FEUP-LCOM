@@ -37,6 +37,10 @@ typedef struct {
 } Bitmap;
 
 typedef struct{
+  bool MOVE_UP,MOVE_DOWN, MOVE_LEFT,MOVE_RIGHT;
+} Movement;
+
+typedef struct{
   uint32_t x;
   uint32_t y;
   uint32_t xspeed;
@@ -45,7 +49,11 @@ typedef struct{
   uint32_t height;
   uint32_t width;
   Alignment align;
+  bool colided;
+  bool canColide;
+  Movement mov;
 } Sprite;
+
 
 /**
 * @brief Loads a bmp image

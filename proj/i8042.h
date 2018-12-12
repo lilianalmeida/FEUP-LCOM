@@ -27,7 +27,13 @@
 #define KEY_A           0x001E
 #define KEY_S           0x001F
 #define KEY_D           0x0020
-#define KEY_ENTER       0x001C
+#define KEY_ENTER       0x009C
+#define KEY_W_BREAK     0x0091
+#define KEY_A_BREAK     0x009e
+#define KEY_S_BREAK     0x009f
+#define KEY_D_BREAK     0x00a0
+
+
 
 #define DELAY_US 					20000
 

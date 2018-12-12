@@ -382,6 +382,6 @@ int getHorResolution(){
 int getVerResolution(){
   return (int)v_res;
 }
-char *getGraphicsBuffer(){
-  return (char*)drawingBuffer;
+unsigned char *getGraphicsBuffer(){
+  return (unsigned char*)drawingBuffer;
 }
