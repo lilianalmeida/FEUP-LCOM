@@ -17,6 +17,6 @@ void doubleBuffCall();
 
 int getHorResolution();
 int getVerResolution();
-char *getGraphicsBuffer();
+unsigned char *getGraphicsBuffer();
 
 #endif
