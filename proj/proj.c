@@ -1,17 +1,10 @@
 // IMPORTANT: you must include the following line in all your C files
 #include <lcom/lcf.h>
-#include <lcom/timer.h>
+#include <stdlib.h>
 // Any header files included below this line should have been created by you
-#include "i8254.h"
-#include "i8042.h"
 #include "bitmap.h"
-#include "keyboard.h"
-#include "mouse_test.h"
-#include "mouse_macros.h"
-#include "video_gr.h"
-#include "vbe_macros.h"
-#include "game.h"
 #include "main_menu.h"
+#include "initGame.h"
 
 
 int main(int argc, char *argv[]) {
@@ -40,6 +33,18 @@ int main(int argc, char *argv[]) {
 
 int (proj_main_loop)(int UNUSED(argc), char *UNUSED(argv[])) {
 
+  time_t t;
+  srand((unsigned) time(&t));
+
+  if (devices_init () != OK){
+    return 1;
+  }
+
   start_main_menu();
+
+  if (devices_end() != OK){
+    return 1;
+  }
+
   return 0;
 }

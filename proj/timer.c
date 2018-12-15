@@ -4,10 +4,9 @@
 #include <stdint.h>
 
 #include "i8254.h"
-//#include "i8042.h"
 
 //global variable
-int hook_id_t = 0x02;
+static int hook_id_t = 0x02;
 
 //// 7.2 ////
 int (timer_set_frequency)(uint8_t timer, uint32_t freq) {
@@ -134,6 +133,7 @@ int (timer_display_conf)(uint8_t timer, uint8_t st, enum timer_status_field fiel
 		case base:
 		uni.bcd = st & BIT(0);
 		break;
+		
 		default:
 		printf("timer_status_field not recognized",0);
 	}
