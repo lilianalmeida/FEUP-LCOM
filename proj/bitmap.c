@@ -1,10 +1,6 @@
 #include <lcom/lcf.h>
 #include "bitmap.h"
-#include <stdint.h>
-#include <stdio.h>
 #include "video_gr.h"
-#include "vbe_macros.h"
-#include <stdlib.h>
 
 
 Bitmap* loadBitmap(const char* filename) {
@@ -175,6 +171,8 @@ Bitmap* loadBitmap(const char* filename) {
   unsigned char* imgStartPos;
 
   int i;
+  sp->colided = false;
+
   for (i = 0; i < height; i++) {
     int pos = y + height - 1 - i;
 
@@ -190,23 +188,21 @@ Bitmap* loadBitmap(const char* filename) {
     for(j = 0; j < drawWidth * 2; j += 2){
       if((imgStartPos[j]!=0x1F && imgStartPos[j+1] != 0xF8) && (bufferStartPos[j]==0x00 && bufferStartPos[j+1] == 0x00))
       {
-        if(sp->canColide){
-        sp->colided = true;
-        sp->canColide = false;
-        printf("NoColision\n" );
-      }
+        if(sp->canColide && !sp->colided){
+          sp->colided = true;
+        }
 
       }
+
       if(imgStartPos[j]!=0x1F && imgStartPos[j+1] != 0xF8){
         bufferStartPos[j] = imgStartPos[j];
         bufferStartPos[j+1] = imgStartPos[j+1];
       }
     }
   }
-
-  if(sp->x > (uint32_t)(getHorResolution()/2) && !sp->canColide){
+  
+  if(sp->x > (getHorResolution()/2) && !sp->canColide){
     sp->canColide = true;
-    printf("CanColide\n" );
   }
 
 }

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _BITMAP_H_
+#define _BITMAP_H_
 
 /** @defgroup Bitmap Bitmap
 * @{
@@ -41,8 +42,8 @@ typedef struct{
 } Movement;
 
 typedef struct{
-  uint32_t x;
-  uint32_t y;
+  int32_t x;
+  int32_t y;
   uint32_t xspeed;
   uint32_t yspeed;
   Bitmap *bmp;
@@ -83,3 +84,6 @@ void deleteBitmap(Bitmap* bmp);
 Sprite* createSprite(Bitmap* bmp, uint32_t x, uint32_t y, uint32_t xspeed, uint32_t yspeed);
 void drawSprite( Sprite* sp);
 /**@}*/
+
+#endif //_BITMAP_H_
+
