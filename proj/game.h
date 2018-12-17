@@ -5,5 +5,6 @@ void movePlayer(Sprite* sp);
 void set_move(Sprite *sp);
 void throwBall(Sprite* ball);
 void initGame();
+void shootBall(Sprite* ball, Sprite* aim);
 
 #endif

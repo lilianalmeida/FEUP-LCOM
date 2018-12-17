@@ -163,46 +163,46 @@ Bitmap* loadBitmap(const char* filename) {
 
     if (drawWidth > getHorResolution())
     drawWidth = getHorResolution();
-   else if (x + drawWidth >= (uint32_t)getHorResolution()) {
-    drawWidth = getHorResolution() - x;
-  }
+    else if (x + drawWidth >= (uint32_t)getHorResolution()) {
+      drawWidth = getHorResolution() - x;
+    }
 
-  unsigned char* bufferStartPos;
-  unsigned char* imgStartPos;
+    unsigned char* bufferStartPos;
+    unsigned char* imgStartPos;
 
-  int i;
-  sp->colided = false;
+    int i;
+    sp->colided = false;
 
-  for (i = 0; i < height; i++) {
-    int pos = y + height - 1 - i;
+    for (i = 0; i < height; i++) {
+      int pos = y + height - 1 - i;
 
-    if (pos < 0 || pos >= getVerResolution())
-    continue;
+      if (pos < 0 || pos >= getVerResolution())
+      continue;
 
-    bufferStartPos = getGraphicsBuffer();
-    bufferStartPos += x * 2 + pos * getHorResolution() * 2;
+      bufferStartPos = getGraphicsBuffer();
+      bufferStartPos += x * 2 + pos * getHorResolution() * 2;
 
-    imgStartPos =(unsigned char*)( sp->bmp->bitmapData) + i * width * 2;
+      imgStartPos =(unsigned char*)( sp->bmp->bitmapData) + i * width * 2;
 
-   int j;
-    for(j = 0; j < drawWidth * 2; j += 2){
-      if((imgStartPos[j]!=0x1F && imgStartPos[j+1] != 0xF8) && (bufferStartPos[j]==0x00 && bufferStartPos[j+1] == 0x00))
-      {
-        if(sp->canColide && !sp->colided){
-          sp->colided = true;
+      int j;
+      for(j = 0; j < drawWidth * 2; j += 2){
+        if((imgStartPos[j]!=0x1F && imgStartPos[j+1] != 0xF8) && (bufferStartPos[j]==0x00 && bufferStartPos[j+1] == 0x80))
+        {
+          if(sp->canColide && !sp->colided){
+            sp->colided = true;
+          }
+
         }
 
-      }
-
-      if(imgStartPos[j]!=0x1F && imgStartPos[j+1] != 0xF8){
-        bufferStartPos[j] = imgStartPos[j];
-        bufferStartPos[j+1] = imgStartPos[j+1];
+        if(imgStartPos[j]!=0x1F && imgStartPos[j+1] != 0xF8){
+          bufferStartPos[j] = imgStartPos[j];
+          bufferStartPos[j+1] = imgStartPos[j+1];
+        }
       }
     }
-  }
-  
-  if(sp->x > (getHorResolution()/2) && !sp->canColide){
-    sp->canColide = true;
-  }
 
-}
+    if(sp->x > (getHorResolution()/2) && !sp->canColide){
+      sp->canColide = true;
+    }
+
+  }

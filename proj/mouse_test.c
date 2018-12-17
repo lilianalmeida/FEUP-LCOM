@@ -178,21 +178,20 @@ int OB_cleaner(){
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 void move_aim (Sprite *aim){
-	aim->x += 5*pp.delta_x;
-	aim->y -= 5*pp.delta_y;
+	aim->x += pp.delta_x;
+	aim->y -= pp.delta_y;
 	if (aim->y <0 ){
 		aim->y = 0;
 	}else if ((aim->y + aim->height)> (uint32_t) getVerResolution()){
-		aim->y += 5*pp.delta_y;
+		aim->y += pp.delta_y;
 	}
 	if (aim-> x < 0){
 		aim->x = 0;
 	}else if ((aim->x + aim->width) > (uint32_t) getHorResolution()){
-		aim->x -= 5*pp.delta_x;
+		aim->x -= pp.delta_x;
 	}
 }
 
 bool is_left_pressed(){
 	return pp.lb;
 }
-
