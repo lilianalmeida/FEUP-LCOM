@@ -27,7 +27,7 @@ void initGame() {
   Bitmap* aim_bmp = loadBitmap("/home/lcom/labs/proj/bmp/Crosshair.bmp");
   Bitmap* field_bmp = loadBitmap("/home/lcom/labs/proj/bmp/Field.bmp");
   Bitmap* playerRight_bmp = loadBitmap("/home/lcom/labs/proj/bmp/PlayerRightHand.bmp");
-  //Bitmap* playerLeft_bmp = loadBitmap("/home/lcom/labs/proj/bmp/PlayerLeftHand.bmp");
+  Bitmap* playerLeft_bmp = loadBitmap("/home/lcom/labs/proj/bmp/PlayerLeftHand.bmp");
 
 
   Sprite* ball = createSprite(ball_bmp, 0,0,0,0);
@@ -69,11 +69,11 @@ void initGame() {
             if(ball->y < 1 || ball->y > getVerResolution()|| ball->x < 1 || ball->x > getHorResolution()) {
               throwBall(ball);
             }
-            /*if(ball->y < player->y){ //Código para mudar o sprite do player consoante a posicao da bola
+            if(ball->y < player->y){ //Código para mudar o sprite do player consoante a posicao da bola
               player->bmp = playerLeft_bmp;
             }else {
               player->bmp = playerRight_bmp;
-            }*/
+            }
 
             ball->x += ball->xspeed;
             ball->y += ball->yspeed;
