@@ -11,9 +11,8 @@
 #include "i8042.h"
 #include "initGame.h"
 #include "game.h"
-
-int playerMovSpeed = 7;
-int ballMovSpeed = 6;
+#include "playerMovement.h"
+#include "pointSystem.h"
 
 void initGame() {
   int ipc_status;
@@ -34,7 +33,7 @@ void initGame() {
   Bitmap* playerLeft_bmp = loadBitmap("/home/lcom/labs/proj/bmp/PlayerLeftHand.bmp");
 
 
-  Sprite* ball = createSprite(ball_bmp, 0,0,0,0);
+  Sprite* ball = createSprite(ball_bmp,4*getHorResolution()/5,getVerResolution()/2,0,0);
   Sprite* player = createSprite(playerRight_bmp, 20,20,0,0);
   Sprite* aim = createSprite(aim_bmp, 150,150,0,0);
   Sprite* ballThrower = createSprite(ballThrower_bmp,4*getHorResolution()/5,getVerResolution()/2-30,0,0);
@@ -44,6 +43,7 @@ void initGame() {
   drawSprite(aim);
   doubleBuffCall();
 
+  throwBall(ball);
   while (scanByte != ESC_CODE) {
     /* Get a request message. */
     if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) {
@@ -54,39 +54,38 @@ void initGame() {
       switch (_ENDPOINT_P(msg.m_source)) {
         case HARDWARE: /* hardware interrupt notification */
         if (msg.m_notify.interrupts & kbc_irq_set) { /* subscribed interrupt */
-
           kbc_ih();
-
           if (kbc_ih_error) {
             kbc_ih_error = false;
             continue;
           }
-
           isTwoByte(&wait, &nbyte);
           if (wait == false) {
             scancode_parse(scanByte, nbyte);
           }
-
           set_move(player, nbyte);
 
           tickdelay(micros_to_ticks(DELAY_US));
         }
         if (msg.m_notify.interrupts & timer_irq_set) {
           timer_int_handler();
+
+
           if(counter_t % 1 == 0) {
 
             if(ball->y < 1 || ball->y > getVerResolution()|| ball->x < 1 || ball->x > getHorResolution()) {
               throwBall(ball);
+              if(!pointHandler(ball, aim)){
+                scanByte = ESC_CODE;
+              }
             }
             if(ball->y < player->y + (int)player->height/2){ //Código para mudar o sprite do player consoante a posicao da bola
               player->bmp = playerLeft_bmp;
             }else {
               player->bmp = playerRight_bmp;
             }
-
             ball->x += ball->xspeed;
             ball->y += ball->yspeed;
-
             movePlayer(player);
             if(ball->colided) {
               if (is_left_pressed()){
@@ -99,8 +98,8 @@ void initGame() {
             drawSprite(player);
             drawSprite(aim);
             drawSprite(ball);
+            printPoints();
             doubleBuffCall();
-
           }
 
         }
@@ -127,94 +126,4 @@ void initGame() {
     }
   }
 
-}
-void shootBall(Sprite* ball, Sprite* aim){
-  ball->colided = false;
-  ball->canColide = false;
-
-  int ballx = ball->x;
-  int bally = ball->y;
-  int aimx = aim->x;
-  int aimy = aim->y;
-  printf("x %d\n",ballx );
-  printf("y %d\n",bally );
-  printf("x %d\n",aimx );
-  printf("y %d\n",aimy );
-
-  double angulo = atan2((double)(aimy - bally),(double)(aimx - ballx));
-  printf("a %d\n",angulo );
-  printf("t %d\n", ((double)(aimy - bally)/(double)(aimx - ballx)));
-
-  ball->xspeed = ballMovSpeed * cos(angulo);
-  ball->yspeed = ballMovSpeed * sin(angulo);
-  printf("x %d\n",ball->xspeed );
-  printf("y %d\n",ball->yspeed );
-}
-
-void throwBall(Sprite* ball) {
-  ball->x = 4* getHorResolution()/5;
-  ball->y = getVerResolution()/2;
-  printf("reset\n");
-  ball->xspeed = -((rand() % 3) + ballMovSpeed);
-  ball->yspeed = ((rand() % (ballMovSpeed*2)) - ballMovSpeed);
-}
-
-void set_move(Sprite *sp, uint8_t nbyte) {
-
-  if((nbyte == 1 && scanByte==KEY_W) || (nbyte == 2 && scanByte == KEY_UP)) {
-    sp->mov.MOVE_UP = true;
-
-  }else if((nbyte == 1 && scanByte==KEY_S) || (nbyte == 2 && scanByte == KEY_DOWN)) {
-    sp->mov.MOVE_DOWN = true;
-
-  }else if((nbyte == 1 && scanByte==KEY_A) || (nbyte == 2 && scanByte == KEY_LEFT)) {
-    sp->mov.MOVE_LEFT = true;
-
-  }else if((nbyte == 1 && scanByte==KEY_D) || (nbyte == 2 && scanByte == KEY_RIGTH)) {
-    sp->mov.MOVE_RIGHT = true;
-
-  }else if((nbyte == 1 && scanByte==KEY_W_BREAK) || (nbyte == 2 && scanByte == KEY_UP_BREAK)) {
-    sp->mov.MOVE_UP = false;
-
-  }else if((nbyte == 1 && scanByte==KEY_S_BREAK) || (nbyte == 2 && scanByte == KEY_DOWN_BREAK)) {
-    sp->mov.MOVE_DOWN = false;
-
-  }else if((nbyte == 1 && scanByte==KEY_A_BREAK) || (nbyte == 2 && scanByte == KEY_LEFT_BREAK)) {
-    sp->mov.MOVE_LEFT = false;
-
-  }else if((nbyte == 1 && scanByte==KEY_D_BREAK) || (nbyte == 2 && scanByte == KEY_RIGTH_BREAK)) {
-    sp->mov.MOVE_RIGHT = false;
-  }
-
-}
-
-void movePlayer(Sprite* sp){
-
-  if(sp->mov.MOVE_UP){
-    sp->y -=playerMovSpeed;
-    if (sp-> y < 0){
-      sp->y = 0;
-    }
-  }
-
-  if(sp->mov.MOVE_DOWN){
-    sp->y +=playerMovSpeed;
-    if ((sp->y + sp->height)>= (uint32_t) getVerResolution()){
-      sp->y -=playerMovSpeed;
-    }
-  }
-
-  if(sp->mov.MOVE_LEFT){
-    sp->x -=playerMovSpeed;
-    if(sp->x < 0){
-      sp->x = 0;
-    }
-  }
-
-  if(sp->mov.MOVE_RIGHT){
-    sp->x +=playerMovSpeed;
-    if(sp->x + sp->width >= (uint32_t)getHorResolution()/2){
-      sp->x -=playerMovSpeed;
-    }
-  }
 }

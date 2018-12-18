@@ -1,6 +1,6 @@
 PROG=proj
 
-SRCS = proj.c bitmap.c keyboard.c mouse_test.c video_gr.c timer.c game.c main_menu.c initGame.c
+SRCS = proj.c bitmap.c keyboard.c mouse_test.c video_gr.c timer.c game.c main_menu.c initGame.c playerMovement.c pointSystem.c
 
 CPPFLAGS += -pedantic #-D __LCOM_OPTIMIZED__
 
