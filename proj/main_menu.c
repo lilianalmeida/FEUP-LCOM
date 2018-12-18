@@ -18,6 +18,9 @@ void start_main_menu (){
   message msg;
   uint32_t r;
 
+  uint8_t nbyte = 0; //numero de bytes do scancode
+  bool wait = false;
+
   uint32_t kbc_irq_set = getKBC_IRQ();
   uint32_t mouse_irq_set = getMOUSE_IRQ();
 
@@ -46,8 +49,13 @@ void start_main_menu (){
             kbc_ih_error = false;
             continue;
           }
+
+          isTwoByte(&wait, &nbyte);
+          if (wait == false) {
+            scancode_parse(scanByte, nbyte);
+          }
           
-          parse_kbc_keys(selector, menu_back);
+          parse_kbc_keys(selector, menu_back, nbyte);
           
           tickdelay(micros_to_ticks(DELAY_US));
         }
@@ -67,13 +75,13 @@ void start_main_menu (){
 }
 
 
-void parse_kbc_keys(Sprite *selector, Bitmap *menu_back) {
+void parse_kbc_keys(Sprite *selector, Bitmap *menu_back, uint8_t nbyte) {
 	
-	if (scanByte == KEY_S) {
+	if ((nbyte == 1 && scanByte==KEY_S) || (nbyte == 2 && scanByte == KEY_DOWN)) {
 		opt = ((opt + 1) % (EXIT + 1));
 	}
 	
-	else if (scanByte == KEY_W) {
+	else if ((nbyte == 1 && scanByte==KEY_W) || (nbyte == 2 && scanByte == KEY_UP)) {
 		opt = ((opt - 1) % (EXIT + 1));
 	}
 	
