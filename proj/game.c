@@ -13,6 +13,7 @@
 #include "game.h"
 
 int playerMovSpeed = 7;
+int ballMovSpeed = 6;
 
 void initGame() {
   int ipc_status;
@@ -69,7 +70,7 @@ void initGame() {
             if(ball->y < 1 || ball->y > getVerResolution()|| ball->x < 1 || ball->x > getHorResolution()) {
               throwBall(ball);
             }
-            if(ball->y < player->y){ //Código para mudar o sprite do player consoante a posicao da bola
+            if(ball->y < player->y + (int)player->height/2){ //Código para mudar o sprite do player consoante a posicao da bola
               player->bmp = playerLeft_bmp;
             }else {
               player->bmp = playerRight_bmp;
@@ -138,8 +139,8 @@ void shootBall(Sprite* ball, Sprite* aim){
   printf("a %d\n",angulo );
   printf("t %d\n", ((double)(aimy - bally)/(double)(aimx - ballx)));
 
-  ball->xspeed = 4 * cos(angulo);
-  ball->yspeed = 4 * sin(angulo);
+  ball->xspeed = ballMovSpeed * cos(angulo);
+  ball->yspeed = ballMovSpeed * sin(angulo);
   printf("x %d\n",ball->xspeed );
   printf("y %d\n",ball->yspeed );
 }
@@ -148,8 +149,8 @@ void throwBall(Sprite* ball) {
   ball->x = 4* getHorResolution()/5;
   ball->y = getVerResolution()/2;
   printf("reset\n");
-  ball->xspeed = -((rand() % 3) + 5);
-  ball->yspeed = (rand() % 6) -3;
+  ball->xspeed = -((rand() % 3) + ballMovSpeed);
+  ball->yspeed = ((rand() % (ballMovSpeed*2)) - ballMovSpeed);
 }
 
 void set_move(Sprite *sp) {
