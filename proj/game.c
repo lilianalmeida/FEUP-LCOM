@@ -23,6 +23,9 @@ void initGame() {
   uint32_t timer_irq_set = getTIMER_IRQ();
   uint32_t mouse_irq_set = getMOUSE_IRQ();
 
+  uint8_t nbyte = 0; //numero de bytes do scancode
+  bool wait = false;
+
   Bitmap* ballThrower_bmp = loadBitmap("/home/lcom/labs/proj/bmp/BallThrower.bmp");
   Bitmap* ball_bmp = loadBitmap("/home/lcom/labs/proj/bmp/Bola.bmp");
   Bitmap* aim_bmp = loadBitmap("/home/lcom/labs/proj/bmp/Crosshair.bmp");
@@ -59,7 +62,12 @@ void initGame() {
             continue;
           }
 
-          set_move(player);
+          isTwoByte(&wait, &nbyte);
+          if (wait == false) {
+            scancode_parse(scanByte, nbyte);
+          }
+
+          set_move(player, nbyte);
 
           tickdelay(micros_to_ticks(DELAY_US));
         }
@@ -105,7 +113,6 @@ void initGame() {
           }
 
           if(byteNumber == 3){
-            counter++;
             parse_packet();
             move_aim (aim);
             byteNumber = 0;
@@ -124,7 +131,6 @@ void initGame() {
 void shootBall(Sprite* ball, Sprite* aim){
   ball->colided = false;
   ball->canColide = false;
-  ball->x += abs(ball->xspeed);
 
   int ballx = ball->x;
   int bally = ball->y;
@@ -153,30 +159,30 @@ void throwBall(Sprite* ball) {
   ball->yspeed = ((rand() % (ballMovSpeed*2)) - ballMovSpeed);
 }
 
-void set_move(Sprite *sp) {
+void set_move(Sprite *sp, uint8_t nbyte) {
 
-  if(scanByte==KEY_W) {
+  if((nbyte == 1 && scanByte==KEY_W) || (nbyte == 2 && scanByte == KEY_UP)) {
     sp->mov.MOVE_UP = true;
 
-  }else if(scanByte==KEY_S) {
+  }else if((nbyte == 1 && scanByte==KEY_S) || (nbyte == 2 && scanByte == KEY_DOWN)) {
     sp->mov.MOVE_DOWN = true;
 
-  }else if(scanByte==KEY_A) {
+  }else if((nbyte == 1 && scanByte==KEY_A) || (nbyte == 2 && scanByte == KEY_LEFT)) {
     sp->mov.MOVE_LEFT = true;
 
-  }else if(scanByte==KEY_D) {
+  }else if((nbyte == 1 && scanByte==KEY_D) || (nbyte == 2 && scanByte == KEY_RIGTH)) {
     sp->mov.MOVE_RIGHT = true;
 
-  }else if(scanByte==KEY_W_BREAK) {
+  }else if((nbyte == 1 && scanByte==KEY_W_BREAK) || (nbyte == 2 && scanByte == KEY_UP_BREAK)) {
     sp->mov.MOVE_UP = false;
 
-  }else if(scanByte==KEY_S_BREAK) {
+  }else if((nbyte == 1 && scanByte==KEY_S_BREAK) || (nbyte == 2 && scanByte == KEY_DOWN_BREAK)) {
     sp->mov.MOVE_DOWN = false;
 
-  }else if(scanByte==KEY_A_BREAK) {
+  }else if((nbyte == 1 && scanByte==KEY_A_BREAK) || (nbyte == 2 && scanByte == KEY_LEFT_BREAK)) {
     sp->mov.MOVE_LEFT = false;
 
-  }else if(scanByte==KEY_D_BREAK) {
+  }else if((nbyte == 1 && scanByte==KEY_D_BREAK) || (nbyte == 2 && scanByte == KEY_RIGTH_BREAK)) {
     sp->mov.MOVE_RIGHT = false;
   }
 
