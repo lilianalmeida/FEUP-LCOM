@@ -44,8 +44,8 @@ void movePlayer(Sprite* sp){
 
   if(sp->mov.MOVE_UP){
     sp->y -=playerMovSpeed;
-    if (sp-> y < 0){
-      sp->y = 0;
+    if (sp-> y <= 70){
+      sp->y = 71;
     }
   }
 
@@ -58,8 +58,8 @@ void movePlayer(Sprite* sp){
 
   if(sp->mov.MOVE_LEFT){
     sp->x -=playerMovSpeed;
-    if(sp->x < 0){
-      sp->x = 0;
+    if(sp->x <= 70){
+      sp->x = 71;
     }
   }
 
