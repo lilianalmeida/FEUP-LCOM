@@ -36,8 +36,8 @@ void initGame() {
 
 
   Sprite* ball = createSprite(ball_bmp,4*getHorResolution()/5,getVerResolution()/2,0,0);
-  Sprite* player = createSprite(playerRight_bmp, 20,20,0,0);
-  Sprite* aim = createSprite(aim_bmp, 150,150,0,0);
+  Sprite* player = createSprite(playerRight_bmp, 20,getVerResolution()/2,0,0);
+  Sprite* aim = createSprite(aim_bmp, getHorResolution()/2,getVerResolution()/2,0,0);
   Sprite* ballThrower = createSprite(ballThrower_bmp,4*getHorResolution()/5,getVerResolution()/2-30,0,0);
   drawBitmap(singlePlayerField_bmp,0,0, ALIGN_LEFT);
   drawSprite(player);
@@ -75,7 +75,7 @@ void initGame() {
 
           if(counter_t % 1 == 0) {
 
-            if(ball->y < 1 || ball->y > getVerResolution()|| ball->x < 1 || ball->x > getHorResolution()) {
+            if(ball->y <= 70 || ball->y > getVerResolution()|| ball->x < 1 || ball->x > getHorResolution()) {
               throwBall(ball);
               if(!pointHandler(ball, aim)){
                 scanByte = ESC_CODE;

@@ -180,8 +180,8 @@ int OB_cleaner(){
 void move_aim (Sprite *aim){
 	aim->x += pp.delta_x;
 	aim->y -= pp.delta_y;
-	if (aim->y <0 ){
-		aim->y = 0;
+	if (aim->y <= 70 ){
+		aim->y = 71;
 	}else if ((aim->y + aim->height)> (uint32_t) getVerResolution()){
 		aim->y += pp.delta_y;
 	}
