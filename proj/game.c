@@ -22,13 +22,15 @@ void initGame() {
   uint32_t timer_irq_set = getTIMER_IRQ();
   uint32_t mouse_irq_set = getMOUSE_IRQ();
 
+  loadNumbers(); //Creates sprites for all numbers
+
   uint8_t nbyte = 0; //numero de bytes do scancode
   bool wait = false;
 
   Bitmap* ballThrower_bmp = loadBitmap("/home/lcom/labs/proj/bmp/BallThrower.bmp");
   Bitmap* ball_bmp = loadBitmap("/home/lcom/labs/proj/bmp/Bola.bmp");
   Bitmap* aim_bmp = loadBitmap("/home/lcom/labs/proj/bmp/Crosshair.bmp");
-  Bitmap* field_bmp = loadBitmap("/home/lcom/labs/proj/bmp/Field.bmp");
+  Bitmap* singlePlayerField_bmp = loadBitmap("/home/lcom/labs/proj/bmp/SinglePlayerField.bmp");
   Bitmap* playerRight_bmp = loadBitmap("/home/lcom/labs/proj/bmp/PlayerRightHand.bmp");
   Bitmap* playerLeft_bmp = loadBitmap("/home/lcom/labs/proj/bmp/PlayerLeftHand.bmp");
 
@@ -37,7 +39,7 @@ void initGame() {
   Sprite* player = createSprite(playerRight_bmp, 20,20,0,0);
   Sprite* aim = createSprite(aim_bmp, 150,150,0,0);
   Sprite* ballThrower = createSprite(ballThrower_bmp,4*getHorResolution()/5,getVerResolution()/2-30,0,0);
-  drawBitmap(field_bmp,0,0, ALIGN_LEFT);
+  drawBitmap(singlePlayerField_bmp,0,0, ALIGN_LEFT);
   drawSprite(player);
   drawSprite(ball);
   drawSprite(aim);
@@ -93,7 +95,7 @@ void initGame() {
               }
             }
 
-            drawBitmap(field_bmp,0, 0, ALIGN_LEFT);
+            drawBitmap(singlePlayerField_bmp,0, 0, ALIGN_LEFT);
             drawSprite(ballThrower);
             drawSprite(player);
             drawSprite(aim);
