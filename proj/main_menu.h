@@ -7,5 +7,4 @@ void start_main_menu ();
 void parse_kbc_keys(Sprite *selector, Bitmap *menu_back, uint8_t nbyte);
 void call_func_menu();
 
-
 #endif

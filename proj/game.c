@@ -13,6 +13,7 @@
 #include "game.h"
 #include "playerMovement.h"
 #include "pointSystem.h"
+#include "rtc_macros.h"
 
 void initGame() {
   int ipc_status;
@@ -21,11 +22,12 @@ void initGame() {
   uint32_t kbc_irq_set = getKBC_IRQ();
   uint32_t timer_irq_set = getTIMER_IRQ();
   uint32_t mouse_irq_set = getMOUSE_IRQ();
-
-  loadNumbers(); //Creates sprites for all numbers
+  uint32_t rtc_irq_set = getRTC_IRQ();
 
   uint8_t nbyte = 0; //numero de bytes do scancode
   bool wait = false;
+
+  loadGameNumbers(); //Creates Bitmaps for all numbers
 
   Bitmap* ballThrower_bmp = loadBitmap("/home/lcom/labs/proj/bmp/BallThrower.bmp");
   Bitmap* ball_bmp = loadBitmap("/home/lcom/labs/proj/bmp/Bola.bmp");
@@ -33,7 +35,6 @@ void initGame() {
   Bitmap* singlePlayerField_bmp = loadBitmap("/home/lcom/labs/proj/bmp/SinglePlayerField.bmp");
   Bitmap* playerRight_bmp = loadBitmap("/home/lcom/labs/proj/bmp/PlayerRightHand.bmp");
   Bitmap* playerLeft_bmp = loadBitmap("/home/lcom/labs/proj/bmp/PlayerLeftHand.bmp");
-
 
   Sprite* ball = createSprite(ball_bmp,4*getHorResolution()/5,getVerResolution()/2,0,0);
   Sprite* player = createSprite(playerRight_bmp, 20,getVerResolution()/2,0,0);
@@ -45,6 +46,8 @@ void initGame() {
   drawSprite(aim);
   doubleBuffCall();
 
+
+  update_date();
   throwBall(ball);
   while (scanByte != ESC_CODE) {
     /* Get a request message. */
@@ -55,6 +58,11 @@ void initGame() {
     if (is_ipc_notify(ipc_status)) { /* received notification */
       switch (_ENDPOINT_P(msg.m_source)) {
         case HARDWARE: /* hardware interrupt notification */
+        if (msg.m_notify.interrupts & rtc_irq_set) {
+          //TODO: Apagar ou nao?
+          printf("herw\n");
+          update_date();
+        }
         if (msg.m_notify.interrupts & kbc_irq_set) { /* subscribed interrupt */
           kbc_ih();
           if (kbc_ih_error) {
@@ -72,16 +80,19 @@ void initGame() {
         if (msg.m_notify.interrupts & timer_irq_set) {
           timer_int_handler();
 
+          if (counter_t % 60 == 0){
+            update_date();
+          }
 
-          if(counter_t % 1 == 0) {
-
+          if(counter_t % 1 == 0) { //redundante
             if(ball->y <= 70 || ball->y > getVerResolution()|| ball->x < 1 || ball->x > getHorResolution()) {
               throwBall(ball);
               if(!pointHandler(ball, aim)){
                 scanByte = ESC_CODE;
               }
             }
-            if(ball->y < player->y + (int)player->height/2){ //Código para mudar o sprite do player consoante a posicao da bola
+            //if(ball->y < player->y + (int)player->height/2){ //Código para mudar o sprite do player consoante a posicao da bola
+            if(player->y < 412){
               player->bmp = playerLeft_bmp;
             }else {
               player->bmp = playerRight_bmp;
@@ -101,6 +112,7 @@ void initGame() {
             drawSprite(aim);
             drawSprite(ball);
             printPoints();
+            print_date();
             doubleBuffCall();
           }
 
@@ -127,5 +139,13 @@ void initGame() {
       /* no standard messages expected: do nothing */
     }
   }
+
+  deleteNumbers();
+  deleteBitmap(ballThrower_bmp);
+  deleteBitmap(ball_bmp);
+  deleteBitmap(aim_bmp);
+  deleteBitmap(singlePlayerField_bmp);
+  deleteBitmap(playerRight_bmp);
+  deleteBitmap(playerLeft_bmp);
 
 }

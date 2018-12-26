@@ -1,4 +1,5 @@
 #include <lcom/lcf.h>
+#include "playerMovement.h"
 #include "i8042.h"
 #include "bitmap.h"
 #include "keyboard.h"
@@ -9,7 +10,6 @@ int playerMovSpeed = 7;
 int ballMovSpeed = 6;
 static int aimx = 0;
 static int aimy = 0;
-
 
 void set_move(Sprite *sp, uint8_t nbyte) {
 
@@ -58,8 +58,8 @@ void movePlayer(Sprite* sp){
 
   if(sp->mov.MOVE_LEFT){
     sp->x -=playerMovSpeed;
-    if(sp->x <= 70){
-      sp->x = 71;
+    if(sp->x <= 0){
+      sp->x = 1;
     }
   }
 
@@ -83,12 +83,13 @@ void shootBall(Sprite* ball, Sprite* aim){
   printf("x %d\n",aimx );
   printf("y %d\n",aimy );
 
-  double angulo = atan2((double)(aimy - bally),(double)(aimx - ballx));
-  printf("a %d\n",angulo );
-  printf("t %d\n", ((double)(aimy - bally)/(double)(aimx - ballx)));
+  double angle = atan((double)(aimy - bally)/(aimx - ballx));
+  int l = -angle*180/M_PI;
+  printf("a %d \n",l);
+  printf("t %d\n", ((double)(aimy - bally)/(aimx - ballx)));
 
-  ball->xspeed = ballMovSpeed * cos(angulo);
-  ball->yspeed = ballMovSpeed * sin(angulo);
+  ball->xspeed = ballMovSpeed * cos(angle);
+  ball->yspeed = ballMovSpeed * sin(angle);
   printf("x %d\n",ball->xspeed );
   printf("y %d\n",ball->yspeed );
 }
@@ -106,11 +107,12 @@ void resetAim(){
 }
 
 void throwBall(Sprite* ball) {
+  int angle = ((rand() % 60) - 30);
   ball->x = 4* getHorResolution()/5;
   ball->y = getVerResolution()/2;
   printf("reset\n");
-  ball->xspeed = -((rand() % 3) + ballMovSpeed);
-  ball->yspeed = ((rand() % (ballMovSpeed*2)) - ballMovSpeed);
-  ball->xspeed = -5;
-  ball->yspeed = 0;
+  ball->xspeed = -ballMovSpeed * cos(angle*M_PI/180);
+  ball->yspeed = -ballMovSpeed * sin(angle*M_PI/180);
+  /*ball->xspeed = -5;
+  ball->yspeed = 0;*/
 }
