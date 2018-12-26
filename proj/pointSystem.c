@@ -305,10 +305,10 @@ void highscoreScreen(){
 
 int compare( const void* a, const void* b)
 {
-  int int_a = * ( (int*) a );
-  int int_b = * ( (int*) b );
+  const HighscoreLine *HighscoreLine_a =  (HighscoreLine *) a;
+  const HighscoreLine *HighscoreLine_b =  (HighscoreLine *) b;
 
-  return (int_a < int_b) - (int_a > int_b);
+  return (HighscoreLine_a->points < HighscoreLine_b->points) - (HighscoreLine_a->points > HighscoreLine_b->points);
 }
 void setHighscores(int score){
 
@@ -319,42 +319,41 @@ void setHighscores(int score){
     printf("Failed to open Highscore.txt\n" );
     return;
   } else{
-    int no[5];
-    char str[20];
-    char temp[15];
+
+
+    char point[5];
+    char date[15];
+    sprintf(date,"%x/%x/%x",(int)get_day_rtc(),(int)get_month_rtc(),(int)get_year_rtc());
+    char temp[20];
+    HighscoreLine h[5];
+    memset(temp, 0, 15);
+
     for(int i =0; i<4; i++){ //reads the highscores ans stores them in the array
-      if(  fgets (str, 20, ptr_file) == NULL){
+      if(  fgets (temp, 20, ptr_file) == NULL){
         printf("Failed to read Highscore.txt\n" );
         return;
       }else{
-        no[i] =atoi(memcpy(temp,str,4)); //NAO ESQUECER guardar a DATA tambem
+        h[i].points = atoi(memcpy(point,temp,4));
+        memcpy(h[i].date,&temp[4],8);
+        memset(temp, 0, 15);
       }
     }
+    h[4].points = score;
+    memcpy(h[4].date,date,8);
 
-    no[4]= score; //adds the current score to the array to be sorted
-    printf("Unorderd\n");//DEBBUG
-    for(int i =0; i<5; i++){
-      printf("%03d\n", no[i]);
-    }
-
-    qsort( no, 5, sizeof(int), compare ); //sorts the array (Bubble sort)
-    printf("ordered\n" );//DEBBUG
-    for(int i =0; i<5; i++){
-      printf("%03d\n", no[i]);
-    }
+    qsort( h, 5, sizeof(HighscoreLine), compare ); //sorts the array (Bubble sort)
 
     rewind(ptr_file);
 
     char buf[20];
 
     for(int i =0; i<4; i++){
-      sprintf(buf, "%03d 21/10/99\n", no[i]); //inserir a data depois
+      sprintf(buf, "%03d %s\n", h[i].points,h[i].date); //inserir a data depois
       fwrite(buf, strlen(buf), 1, ptr_file);
     }
 
     fclose(ptr_file);
   }
-
 }
 
 
