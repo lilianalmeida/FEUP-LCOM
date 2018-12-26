@@ -38,4 +38,9 @@ typedef struct {
   uint32_t minutes;
 } Time_RTC;
 
+typedef struct{
+  int points;
+  char date[8];
+}HighscoreLine;
+
 #endif

@@ -36,24 +36,6 @@ int rtc_unsubscribe() {
 	return 0;
 }
 
-
-/*void convert_hour(uint32_t *hour){
-  uint32_t temp;
-  temp = *hour;
-  printf("%x\n", *hour);
-
-  if (temp < 13){
-    return;
-  }
-  temp = *hour - 0x80;
-  temp += 12;
-  if (temp == 12){
-    *hour = 0;
-  }
-
-  *hour = temp;
-}*/
-
 uint32_t get_minutes_rtc(){
   uint32_t min;
   sys_outb(RTC_ADDR_REG, 0x02);
@@ -87,8 +69,6 @@ uint32_t get_year_rtc(){
   return min;
 }
 
-
-
 int serialPort_subscribe(uint8_t * bit_no) {
 
 	*bit_no = hook_id_uart;
@@ -105,6 +85,3 @@ int serialPort_unsubscribe() {
 	}
 	return 0;
 }
-
-
-
