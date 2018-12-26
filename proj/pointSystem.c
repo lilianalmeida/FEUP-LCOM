@@ -11,6 +11,7 @@
 #include "i8042.h"
 #include "rtc_macros.h"
 #include "rtc.h"
+#include "mouse_test.h"
 
 
 static int32_t score = 0;
@@ -255,7 +256,7 @@ void highscoreScreen(){
   message msg;
   uint32_t r;
   uint32_t kbc_irq_set = getKBC_IRQ();
-  //uint32_t timer_irq_set = getTIMER_IRQ();
+  uint32_t mouse_irq_set = getMOUSE_IRQ();
 
   uint8_t nbyte = 0; //numero de bytes do scancode
   bool wait = false;
@@ -278,6 +279,11 @@ void highscoreScreen(){
     if (is_ipc_notify(ipc_status)) { /* received notification */
       switch (_ENDPOINT_P(msg.m_source)) {
         case HARDWARE: /* hardware interrupt notification */
+        if (msg.m_notify.interrupts & mouse_irq_set) {
+
+          OB_cleaner();
+
+        }
         if (msg.m_notify.interrupts & kbc_irq_set) { /* subscribed interrupt */
           kbc_ih();
           if (kbc_ih_error) {
