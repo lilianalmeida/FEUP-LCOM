@@ -1,5 +1,6 @@
 #ifndef _GAME_H_
 #define _GAME_H_
 
-void initGame();
+void singlePlayerGame();
+
 #endif

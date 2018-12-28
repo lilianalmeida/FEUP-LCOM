@@ -7,7 +7,7 @@
 #include <math.h>
 
 int playerMovSpeed = 7;
-int ballMovSpeed = 6;
+int ballMovSpeed = 10;
 static int aimx = 0;
 static int aimy = 0;
 
@@ -78,20 +78,24 @@ void shootBall(Sprite* ball, Sprite* aim){
   int bally = ball->y;
   aimx = aim->x;
   aimy = aim->y;
-  printf("x %d\n",ballx );
+/*  printf("x %d\n",ballx );
   printf("y %d\n",bally );
   printf("x %d\n",aimx );
-  printf("y %d\n",aimy );
+  printf("y %d\n",aimy );*/
 
-  double angle = atan((double)(aimy - bally)/(aimx - ballx));
-  int l = -angle*180/M_PI;
-  printf("a %d \n",l);
-  printf("t %d\n", ((double)(aimy - bally)/(aimx - ballx)));
+  double angle = atan2((double)(aimy - bally),(aimx - ballx));
+  float l = angle;
+ printf("a %f \n",l);
+char buffer[20];
+sprintf (buffer,  "a %f", l );
+printf("%s\n", buffer);
+
+//  printf("t %d\n", ((double)(aimy - bally)/(aimx - ballx)));
 
   ball->xspeed = ballMovSpeed * cos(angle);
   ball->yspeed = ballMovSpeed * sin(angle);
-  printf("x %d\n",ball->xspeed );
-  printf("y %d\n",ball->yspeed );
+//  printf("x %d\n",ball->xspeed );
+//  printf("y %d\n",ball->yspeed );
 }
 
 int getAimx(){
@@ -113,6 +117,6 @@ void throwBall(Sprite* ball) {
   printf("reset\n");
   ball->xspeed = -ballMovSpeed * cos(angle*M_PI/180);
   ball->yspeed = -ballMovSpeed * sin(angle*M_PI/180);
-  /*ball->xspeed = -5;
-  ball->yspeed = 0;*/
+  ball->xspeed = -7;
+  ball->yspeed = 0;
 }

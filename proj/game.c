@@ -15,7 +15,7 @@
 #include "pointSystem.h"
 #include "rtc_macros.h"
 
-void initGame() {
+void singlePlayerGame() {
   int ipc_status;
   message msg;
   uint32_t r;
@@ -60,7 +60,6 @@ void initGame() {
         case HARDWARE: /* hardware interrupt notification */
         if (msg.m_notify.interrupts & rtc_irq_set) {
           //TODO: Apagar ou nao?
-          printf("herw\n");
           update_date();
         }
         if (msg.m_notify.interrupts & kbc_irq_set) { /* subscribed interrupt */
@@ -91,8 +90,7 @@ void initGame() {
                 scanByte = ESC_CODE;
               }
             }
-            //if(ball->y < player->y + (int)player->height/2){ //Código para mudar o sprite do player consoante a posicao da bola
-            if(player->y < 412){
+            if(player->y < 412){ //Changes the racket hand
               player->bmp = playerLeft_bmp;
             }else {
               player->bmp = playerRight_bmp;

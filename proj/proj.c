@@ -40,7 +40,7 @@ int (proj_main_loop)(int UNUSED(argc), char *UNUSED(argv[])) {
     return 1;
   }
 
-  start_main_menu();
+  startMenu();
 
   if (devices_end() != OK){
     return 1;
