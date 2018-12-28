@@ -17,8 +17,5 @@
 #define RTC_REG_C				0X0C
 
 #define RTC_IRQ					8
-#define COM1_IRQ				4
 
 #endif
-
-
