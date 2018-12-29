@@ -5,11 +5,13 @@
 #include "vbe_macros.h"
 #include "initGame.h"
 #include "rtc_macros.h"
+#include "serial_port.h"
 
 static uint32_t timer_irq_set;
 static uint32_t kbc_irq_set;
 static uint32_t mouse_irq_set;
 static uint32_t rtc_irq_set;
+static uint32_t uart_irq_set;
 
 uint32_t getKBC_IRQ() {
   return kbc_irq_set;
@@ -25,9 +27,12 @@ uint32_t getMOUSE_IRQ() {
 uint32_t getRTC_IRQ() {
   return rtc_irq_set;
 }
+uint32_t getUART_IRQ(){
+  return uart_irq_set;
+}
 
 int devices_init() {
-  uint8_t timer_bit_no, kbc_bit_no, mouse_bit_no, rtc_bit_no;
+  uint8_t timer_bit_no, kbc_bit_no, mouse_bit_no, rtc_bit_no, uart_bit_no;
 
   if(keyboard_subscribe(&kbc_bit_no) != OK){
     printf("Error enabling keyboard interrupts",0);
@@ -53,6 +58,11 @@ int devices_init() {
 
   if(mouse_subscribe(&mouse_bit_no) != OK){
     printf("Error subscribing mouse notifications\n");
+    return 1;
+  }
+
+  if(serialPort_subscribe(&uart_bit_no) != OK){
+    printf("Error enabling serial port interrupts",0);
     return 1;
   }
 
@@ -94,6 +104,10 @@ int devices_end() {
 
   if(mouse_disable_data() != OK){
     printf("Error disabling mouse data reporting\n");
+    return 1;
+  }
+  if(serialPort_unsubscribe() != OK){
+    printf("Error disabling serial port interrupts\n");
     return 1;
   }
 

@@ -1,6 +1,14 @@
 #include <lcom/lcf.h>
+#include <lcom/timer.h>
 #include "serial_port_macros.h"
 #include "serial_port.h"
+
+#include "initGame.h"
+#include "keyboard.h"
+#include "i8254.h"
+#include "i8042.h"
+#include "mouse_test.h"
+#include "video_gr.h"
 
 static int hook_id_uart = 5;
 
@@ -41,7 +49,7 @@ int serialPort_handler(uint32_t *scancode){
   }
   if((iir_check & RD) && (read_RBR(scancode) != 0)){
     return 1;
-  }else if ((iir_check & RLS) == RLS&&(read_LSR(&lsr_check) != 0)){
+  }else if ((iir_check & RLS) == RLS && (read_LSR(&lsr_check) != 0)){
     return 1;
   }
   return 0;
@@ -93,9 +101,162 @@ int write_THR(uint32_t byte){
       printf("Error reading LSR\n");
     } else if(lsr_check & THR_EMPTY){
       sys_outb(THR,byte);
-      printf("Transmited:\n");
+      printf("Transmited: %c\n", (char) byte);
       return 0;
     }
+  }
+  return 1;
+}
+
+int clean_RBR(){
+  uint32_t temp;
+  uint32_t iir_check;
+  read_IIR(&iir_check);
+  if(iir_check & RD){
+    read_RBR(&temp);
+  }
+  return 0;
+}
+
+int waitingPlayer2(){
+  int ipc_status;
+  message msg;
+  uint32_t r;
+  uint8_t nbyte = 0; //numero de bytes do scancode
+  bool wait = false;
+
+  uint32_t timer_irq_set = getTIMER_IRQ();
+  uint32_t kbc_irq_set = getKBC_IRQ();
+  uint32_t mouse_irq_set = getMOUSE_IRQ();
+  uint32_t uart_irq_set = getUART_IRQ();
+
+  uint32_t charReceived = 'e'; //char random
+
+
+  Bitmap* menu_back = loadBitmap("/home/lcom/labs/proj/bmp/waitingPlayer2.bmp");
+
+  drawBitmap(menu_back,0, 0, ALIGN_LEFT);
+  doubleBuffCall();
+
+  while (scanByte != ESC_CODE && charReceived != '2') {
+    if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) {
+      printf("driver_receive failed with: %d\n", r);
+      continue;
+    }
+    if (is_ipc_notify(ipc_status)) {
+      switch (_ENDPOINT_P(msg.m_source)) {
+        case HARDWARE:
+        if (msg.m_notify.interrupts & timer_irq_set) {
+          clean_RBR();
+          write_THR('1');
+        }
+        if (msg.m_notify.interrupts & kbc_irq_set) {
+          kbc_ih();
+
+          if (kbc_ih_error) {
+            kbc_ih_error = false;
+            continue;
+          }
+          isTwoByte(&wait, &nbyte);
+          if (wait == false) {
+            scancode_parse(scanByte, nbyte);
+          }
+
+          tickdelay(micros_to_ticks(DELAY_US));
+        }
+        if (msg.m_notify.interrupts & mouse_irq_set) {
+          OB_cleaner();
+        }
+        if(msg.m_notify.interrupts & uart_irq_set){
+          serialPort_handler(&charReceived);
+
+        }
+        break;
+        default:
+        break;
+      }
+    } else {
+    }
+  }
+  deleteBitmap(menu_back);
+  if(scanByte == ESC_CODE){
+    printf("Exited with esc\n" );
+    return 1;
+  }else if(charReceived == '2'){
+    return 0;
+  }
+  return 1;
+}
+int waitingPlayer1(){
+  int ipc_status;
+  message msg;
+  uint32_t r;
+  uint8_t nbyte = 0; //numero de bytes do scancode
+  bool wait = false;
+
+  uint32_t timer_irq_set = getTIMER_IRQ();
+
+  uint32_t kbc_irq_set = getKBC_IRQ();
+  uint32_t mouse_irq_set = getMOUSE_IRQ();
+  uint32_t uart_irq_set = getUART_IRQ();
+
+  uint32_t charReceived = 'e'; //char random
+
+  Bitmap* menu_back = loadBitmap("/home/lcom/labs/proj/bmp/waitingPlayer1.bmp");
+
+  drawBitmap(menu_back,0, 0, ALIGN_LEFT);
+  doubleBuffCall();
+
+  while (scanByte != ESC_CODE && charReceived != '1') {
+    if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) {
+      printf("driver_receive failed with: %d\n", r);
+      continue;
+    }
+    if (is_ipc_notify(ipc_status)) {
+      switch (_ENDPOINT_P(msg.m_source)) {
+        case HARDWARE:
+        if (msg.m_notify.interrupts & timer_irq_set) {
+          if((counter_t % 2) ==0){
+            clean_RBR();
+            write_THR('2');
+          }
+        }
+        if (msg.m_notify.interrupts & kbc_irq_set) {
+          kbc_ih();
+
+          if (kbc_ih_error) {
+            kbc_ih_error = false;
+            continue;
+          }
+          isTwoByte(&wait, &nbyte);
+          if (wait == false) {
+            scancode_parse(scanByte, nbyte);
+          }
+
+          tickdelay(micros_to_ticks(DELAY_US));
+        }
+        if (msg.m_notify.interrupts & mouse_irq_set) {
+          OB_cleaner();
+        }
+        if(msg.m_notify.interrupts & uart_irq_set){
+          serialPort_handler(&charReceived);
+
+        }
+        break;
+        default:
+        break;
+      }
+    } else {
+    }
+  }
+
+  deleteBitmap(menu_back);
+
+  if(scanByte == ESC_CODE){
+    printf("Exited with esc\n" );
+    return 1;
+  } else if(charReceived == '1'){
+    return 0;
   }
   return 1;
 }

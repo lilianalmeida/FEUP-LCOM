@@ -8,5 +8,9 @@ int read_RBR(uint32_t *byte);
 int read_LSR(uint32_t * lsr_byte);
 int read_IIR(uint32_t * iir_check);
 int write_THR(uint32_t byte);
+int clean_RBR();
+int waitingPlayer2();
+int waitingPlayer1();
+
 
 #endif
