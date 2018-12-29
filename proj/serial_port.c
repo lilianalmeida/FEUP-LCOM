@@ -137,8 +137,7 @@ int waitingPlayer2(){
 
   drawBitmap(menu_back,0, 0, ALIGN_LEFT);
   doubleBuffCall();
-
-  while (scanByte != ESC_CODE && charReceived != '2') {
+  while (scanByte != ESC_CODE && charReceived != '1') {
     if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) {
       printf("driver_receive failed with: %d\n", r);
       continue;
@@ -147,8 +146,12 @@ int waitingPlayer2(){
       switch (_ENDPOINT_P(msg.m_source)) {
         case HARDWARE:
         if (msg.m_notify.interrupts & timer_irq_set) {
-          clean_RBR();
-          write_THR('1');
+          if((counter_t % 2) ==0){
+            clean_RBR();
+            write_THR('2');
+
+            //printf("sent\n");
+          }
         }
         if (msg.m_notify.interrupts & kbc_irq_set) {
           kbc_ih();
@@ -170,22 +173,21 @@ int waitingPlayer2(){
         if(msg.m_notify.interrupts & uart_irq_set){
           serialPort_handler(&charReceived);
 
+
         }
         break;
         default:
         break;
       }
-    } else {
     }
   }
   deleteBitmap(menu_back);
   if(scanByte == ESC_CODE){
     printf("Exited with esc\n" );
     return 1;
-  }else if(charReceived == '2'){
-    return 0;
   }
-  return 1;
+
+  return 0;
 }
 int waitingPlayer1(){
   int ipc_status;
@@ -206,8 +208,7 @@ int waitingPlayer1(){
 
   drawBitmap(menu_back,0, 0, ALIGN_LEFT);
   doubleBuffCall();
-
-  while (scanByte != ESC_CODE && charReceived != '1') {
+  while (scanByte != ESC_CODE && charReceived != '2') {
     if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) {
       printf("driver_receive failed with: %d\n", r);
       continue;
@@ -218,7 +219,7 @@ int waitingPlayer1(){
         if (msg.m_notify.interrupts & timer_irq_set) {
           if((counter_t % 2) ==0){
             clean_RBR();
-            write_THR('2');
+            write_THR('1');
           }
         }
         if (msg.m_notify.interrupts & kbc_irq_set) {
@@ -255,8 +256,7 @@ int waitingPlayer1(){
   if(scanByte == ESC_CODE){
     printf("Exited with esc\n" );
     return 1;
-  } else if(charReceived == '1'){
-    return 0;
   }
-  return 1;
+
+  return 0;
 }
