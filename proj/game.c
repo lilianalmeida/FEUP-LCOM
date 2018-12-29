@@ -14,6 +14,7 @@
 #include "playerMovement.h"
 #include "pointSystem.h"
 #include "rtc_macros.h"
+#include "serial_port.h"
 
 void singlePlayerGame() {
   int ipc_status;
@@ -137,7 +138,6 @@ void singlePlayerGame() {
       /* no standard messages expected: do nothing */
     }
   }
-
   deleteNumbers();
   deleteBitmap(ballThrower_bmp);
   deleteBitmap(ball_bmp);
@@ -145,5 +145,21 @@ void singlePlayerGame() {
   deleteBitmap(singlePlayerField_bmp);
   deleteBitmap(playerRight_bmp);
   deleteBitmap(playerLeft_bmp);
+}
+
+void gamePlayer1(){
+    if(waitingPlayer2() != 0){
+      printf("FAILED\n" );
+    }else
+    printf("JA TA LA DENTRO TAMBEM\n" );
+
+
+}
+void gamePlayer2(){
+    if(waitingPlayer1() != 0){
+      printf("FAILED\n" );
+    }else
+    printf("JA TA LA DENTRO \n" );
+
 
 }

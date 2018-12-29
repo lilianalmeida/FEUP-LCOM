@@ -11,7 +11,7 @@
 #include "pointSystem.h"
 
 static menu_options opt = SINGLE_PL;
-static multiplayer_options mul_opt = PLAYER2;
+static multiplayer_options mul_opt = PLAYER1;
 static bool isMulti = false; //Used to distinguish between normal menus and multiplayer menus
 
 static bool exits = 0;
@@ -227,19 +227,16 @@ void call_func_menu(){
     }
   } else if(isMulti){
     if(mul_opt == PLAYER1){
-      //multiPlayerSelect();
-      printf("Player1\n");
+      gamePlayer1();
       mul_opt = PLAYER1;
       return;
     }else if(mul_opt == BACK){
       startMenu();
       return;
     }else if (mul_opt == PLAYER2){
-      //highscoreScreen();
-      printf("Player2\n" );
+      gamePlayer2();
       mul_opt = PLAYER1;
       return;
     }
   }
-
 }
