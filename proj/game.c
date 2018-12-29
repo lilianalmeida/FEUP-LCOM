@@ -158,7 +158,9 @@ void gamePlayer1(){
 void gamePlayer2(){
     if(waitingPlayer1() != 0){
       printf("FAILED\n" );
-    }else
+    }
+    else
+    
     printf("JA TA LA DENTRO \n" );
 
 

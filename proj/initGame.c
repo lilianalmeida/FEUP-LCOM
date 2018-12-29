@@ -70,6 +70,7 @@ int devices_init() {
   timer_irq_set = BIT(timer_bit_no);
   mouse_irq_set = BIT(mouse_bit_no);
   rtc_irq_set = BIT(rtc_bit_no);
+  uart_irq_set = BIT(uart_bit_no);
 
   if(vg_init(MODE117) == NULL){
     printf("Error setting graphics mode\n");
