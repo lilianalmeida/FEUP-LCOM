@@ -30,12 +30,14 @@ void singlePlayerGame() {
 
   loadGameNumbers(); //Creates Bitmaps for all numbers
 
+  printf("1\n" );
+
   Bitmap* ballThrower_bmp = loadBitmap("/home/lcom/labs/proj/bmp/BallThrower.bmp");
   Bitmap* ball_bmp = loadBitmap("/home/lcom/labs/proj/bmp/Bola.bmp");
   Bitmap* aim_bmp = loadBitmap("/home/lcom/labs/proj/bmp/Crosshair.bmp");
   Bitmap* singlePlayerField_bmp = loadBitmap("/home/lcom/labs/proj/bmp/SinglePlayerField.bmp");
-  Bitmap* playerRight_bmp = loadBitmap("/home/lcom/labs/proj/bmp/PlayerRightHand.bmp");
-  Bitmap* playerLeft_bmp = loadBitmap("/home/lcom/labs/proj/bmp/PlayerLeftHand.bmp");
+  Bitmap* playerRight_bmp = loadBitmap("/home/lcom/labs/proj/bmp/Player1RightHand.bmp");
+  Bitmap* playerLeft_bmp = loadBitmap("/home/lcom/labs/proj/bmp/Player1LeftHand.bmp");
 
   Sprite* ball = createSprite(ball_bmp,4*getHorResolution()/5,getVerResolution()/2,0,0);
   Sprite* player = createSprite(playerRight_bmp, 20,getVerResolution()/2,0,0);
@@ -46,6 +48,7 @@ void singlePlayerGame() {
   drawSprite(ball);
   drawSprite(aim);
   doubleBuffCall();
+
 
 
   update_date();
@@ -73,7 +76,7 @@ void singlePlayerGame() {
           if (wait == false) {
             scancode_parse(scanByte, nbyte);
           }
-          set_move(player, nbyte, 0);
+          set_move(player, nbyte, '0',0);
           tickdelay(micros_to_ticks(DELAY_US));
         }
         if (msg.m_notify.interrupts & timer_irq_set) {
@@ -176,7 +179,7 @@ void gamePlayer1(){
     Bitmap* player2Right_bmp = loadBitmap("/home/lcom/labs/proj/bmp/Player2RightHand.bmp");
     Bitmap* player2Left_bmp = loadBitmap("/home/lcom/labs/proj/bmp/Player2LeftHand.bmp");
 
-    Sprite* ball = createSprite(ball_bmp,4*getHorResolution()/5,getVerResolution()/2,0,0);
+    Sprite* ball = createSprite(ball_bmp,90,500,0,0);
     Sprite* player1 = createSprite(player1Right_bmp, 20,getVerResolution()/2,0,0);
     Sprite* player2 = createSprite(player2Right_bmp, getHorResolution()- player2Right_bmp->bitmapInfoHeader.width ,getVerResolution()/2,0,0);
     Sprite* aim = createSprite(aim_bmp, getHorResolution()/2,getVerResolution()/2,0,0);
@@ -211,7 +214,7 @@ void gamePlayer1(){
             if (wait == false) {
               scancode_parse(scanByte, nbyte);
             }
-            set_move(player1, nbyte,'0');
+            set_move(player1, nbyte,'0',1);
 
             tickdelay(micros_to_ticks(DELAY_US));
           }
@@ -275,7 +278,7 @@ void gamePlayer1(){
           }
           if(msg.m_notify.interrupts & uart_irq_set){
             serialPort_handler(&charReceived);
-            set_move(player2, 1, charReceived);
+            set_move(player2, 1, charReceived,1);
           }
           break;
           default:
@@ -324,7 +327,7 @@ void gamePlayer2(){
     Bitmap* player1Right_bmp = loadBitmap("/home/lcom/labs/proj/bmp/Player1RightHand.bmp");
     Bitmap* player1Left_bmp = loadBitmap("/home/lcom/labs/proj/bmp/Player1LeftHand.bmp");
 
-    Sprite* ball = createSprite(ball_bmp,4*getHorResolution()/5,getVerResolution()/2,0,0);
+    Sprite* ball = createSprite(ball_bmp,90,500,0,0);
     Sprite* player2 = createSprite(player2Right_bmp, getHorResolution()- player2Right_bmp->bitmapInfoHeader.width ,getVerResolution()/2,0,0);
     Sprite* player1 = createSprite(player1Right_bmp, 20,getVerResolution()/2,0,0);
     Sprite* aim = createSprite(aim_bmp, getHorResolution()/2,getVerResolution()/2,0,0);
@@ -360,7 +363,7 @@ void gamePlayer2(){
             if (wait == false) {
               scancode_parse(scanByte, nbyte);
             }
-            set_move(player2, nbyte,'0');
+            set_move(player2, nbyte,'0',1);
 
             tickdelay(micros_to_ticks(DELAY_US));
           }
@@ -421,7 +424,7 @@ void gamePlayer2(){
           }
           if(msg.m_notify.interrupts & uart_irq_set){
             serialPort_handler(&charReceived);
-            set_move(player1, 1, charReceived);
+            set_move(player1, 1, charReceived,1);
           }
           break;
           default:
