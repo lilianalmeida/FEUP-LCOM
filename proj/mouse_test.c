@@ -57,9 +57,9 @@ int mouse_disable_data(){
 	int counter =0;
 	while(counter <5){ //Return true if the mouse was enabled succesfully in less than 5 tries
 		if(write_kbc(MOUSE_DISABLE)== 0)
-			return 0;
+		return 0;
 
-	counter++;
+		counter++;
 	}
 
 	return 1;

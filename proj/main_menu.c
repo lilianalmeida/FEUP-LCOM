@@ -26,8 +26,6 @@ void startMenu(){
   uint32_t kbc_irq_set = getKBC_IRQ();
   uint32_t mouse_irq_set = getMOUSE_IRQ();
 
-  isMulti = false; //changes to singleplayer menus
-
   Bitmap* menu_back = loadBitmap("/home/lcom/labs/proj/bmp/MenuBackground.bmp");
   Bitmap* selec = loadBitmap("/home/lcom/labs/proj/bmp/Selector.bmp");
 
@@ -151,13 +149,17 @@ void parse_kbc_keys(uint8_t nbyte) {
     else if (scanByte == KEY_ENTER) {
       call_func_menu();
     }
-  } else if(isMulti) {
+  } else if(isMulti){
     if ((nbyte == 1 && scanByte==KEY_S) || (nbyte == 2 && scanByte == KEY_DOWN)) {
       mul_opt = ((mul_opt + 1) % (BACK + 1));
     }
 
     else if ((nbyte == 1 && scanByte==KEY_W) || (nbyte == 2 && scanByte == KEY_UP)) {
-      mul_opt = ((mul_opt - 1) % (BACK + 1));
+      if (mul_opt == PLAYER1){
+        mul_opt = BACK;
+      }else{
+        mul_opt = (mul_opt - 1);
+      }
     }
 
     else if (scanByte == KEY_ENTER) {
@@ -214,8 +216,11 @@ void call_func_menu(){
       opt = SINGLE_PL;
       return;
     }else if(opt == MULTI_PL){
+      mul_opt = PLAYER1;
       multiPlayerSelect();
       opt = SINGLE_PL;
+      exits = 0;
+      isMulti = false;
       return;
     }else if(opt == EXIT){
       exits = 1;
@@ -231,7 +236,7 @@ void call_func_menu(){
       mul_opt = PLAYER1;
       return;
     }else if(mul_opt == BACK){
-      startMenu();
+      exits = 1;
       return;
     }else if (mul_opt == PLAYER2){
       gamePlayer2();
