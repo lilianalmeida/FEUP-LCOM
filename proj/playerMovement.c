@@ -8,37 +8,45 @@
 #include <math.h>
 
 int playerMovSpeed = 7;
-int ballMovSpeed = 10;
+double ballMovSpeed = 9;
 static int aimx = 0;
 static int aimy = 0;
 
 //charReceived deve ser '0' quando é para mexer o player controlado pelo user
 // ou então é  w a s d i j k l consoante o char recebido no serial port
-void set_move(Sprite *sp, uint8_t nbyte, char adversaryMov) {
+void set_move(Sprite *sp, uint8_t nbyte, char adversaryMov, bool isMulti) {
   if(adversaryMov == '0'){
     if((nbyte == 1 && scanByte==KEY_W) || (nbyte == 2 && scanByte == KEY_UP )) {
       sp->mov.MOVE_UP = true;
+      if(isMulti)
       write_THR('w');
     }else if((nbyte == 1 && scanByte==KEY_S) || (nbyte == 2 && scanByte == KEY_DOWN)) {
       sp->mov.MOVE_DOWN = true;
+      if(isMulti)
       write_THR('s');
     }else if((nbyte == 1 && scanByte==KEY_A) || (nbyte == 2 && scanByte == KEY_LEFT)) {
       sp->mov.MOVE_LEFT = true;
+      if(isMulti)
       write_THR('a');
     }else if((nbyte == 1 && scanByte==KEY_D) || (nbyte == 2 && scanByte == KEY_RIGTH)) {
       sp->mov.MOVE_RIGHT = true;
+      if(isMulti)
       write_THR('d');
     }else if((nbyte == 1 && scanByte==KEY_W_BREAK) || (nbyte == 2 && scanByte == KEY_UP_BREAK)) {
       sp->mov.MOVE_UP = false;
+      if(isMulti)
       write_THR('i');
     }else if((nbyte == 1 && scanByte==KEY_S_BREAK) || (nbyte == 2 && scanByte == KEY_DOWN_BREAK)) {
       sp->mov.MOVE_DOWN = false;
+      if(isMulti)
       write_THR('k');
     }else if((nbyte == 1 && scanByte==KEY_A_BREAK) || (nbyte == 2 && scanByte == KEY_LEFT_BREAK)) {
       sp->mov.MOVE_LEFT = false;
+      if(isMulti)
       write_THR('j');
     }else if((nbyte == 1 && scanByte==KEY_D_BREAK) || (nbyte == 2 && scanByte == KEY_RIGTH_BREAK)) {
       sp->mov.MOVE_RIGHT = false;
+      if(isMulti)
       write_THR('l');
     }
   } else if( adversaryMov != '0') {
@@ -143,12 +151,12 @@ void resetAim(){
 }
 
 void throwBall(Sprite* ball) {
-  int angle = ((rand() % 60) - 30);
+  int angle = ((rand() % 50) - 25);
   ball->x = 4* getHorResolution()/5;
   ball->y = getVerResolution()/2;
   printf("reset\n");
-  ball->xspeed = -ballMovSpeed * cos(angle*M_PI/180);
+  ball->xspeed = -ballMovSpeed* cos(angle*M_PI/180);
   ball->yspeed = -ballMovSpeed * sin(angle*M_PI/180);
-  ball->xspeed = -7;
-  ball->yspeed = 0;
+
+  ballMovSpeed += 0.1;
 }
