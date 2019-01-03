@@ -2,8 +2,7 @@
 #include <lcom/lcf.h>
 #include <stdlib.h>
 // Any header files included below this line should have been created by you
-#include "bitmap.h"
-#include "main_menu.h"
+#include "menus.h"
 #include "initGame.h"
 
 
@@ -32,6 +31,8 @@ int main(int argc, char *argv[]) {
 }
 
 int (proj_main_loop)(int UNUSED(argc), char *UNUSED(argv[])) {
+
+  sys_enable_iop(SELF);
 
   time_t t;
   srand((unsigned) time(&t));

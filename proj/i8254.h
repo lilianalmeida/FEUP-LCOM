@@ -4,7 +4,7 @@
 /** @defgroup i8254 i8254
  * @{
  *
- * Constants for programming the i8254 Timer. Needs to be completed.
+ * Constants for programming the i8254 Timer
  */
 
  #define BIT(n) 		(0x01 << (n))
@@ -54,6 +54,6 @@
 #define TIMER_RB_SEL(n)         BIT((n)+1)
 /**@}*/
 
-extern uint32_t counter_t; //global variable
+extern uint32_t counter_t; //timer counter
 
 #endif /* _LCOM_I8254_H */
