@@ -1,13 +1,13 @@
 #include <lcom/lcf.h>
 #include <lcom/timer.h>
+
 #include "serial_port_macros.h"
 #include "serial_port.h"
-
 #include "initGame.h"
 #include "keyboard.h"
 #include "i8254.h"
 #include "i8042.h"
-#include "mouse_test.h"
+#include "mouse.h"
 #include "video_gr.h"
 
 static int hook_id_uart = 5;
@@ -122,7 +122,7 @@ int waitingPlayer2(){
   int ipc_status;
   message msg;
   uint32_t r;
-  uint8_t nbyte = 0; //numero de bytes do scancode
+  uint8_t nbyte = 0; //scancode's number of bytes
   bool wait = false;
 
   uint32_t timer_irq_set = getTIMER_IRQ();
@@ -137,6 +137,8 @@ int waitingPlayer2(){
 
   drawBitmap(menu_back,0, 0, ALIGN_LEFT);
   doubleBuffCall();
+  clean_RBR();
+
   while (scanByte != ESC_CODE && charReceived != '1') {
     if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) {
       printf("driver_receive failed with: %d\n", r);
@@ -154,16 +156,13 @@ int waitingPlayer2(){
           }
         }
         if (msg.m_notify.interrupts & kbc_irq_set) {
-          kbc_ih();
+          kbc_asm_ih();
 
           if (kbc_ih_error) {
             kbc_ih_error = false;
             continue;
           }
           isTwoByte(&wait, &nbyte);
-          if (wait == false) {
-            scancode_parse(scanByte, nbyte);
-          }
 
           tickdelay(micros_to_ticks(DELAY_US));
         }
@@ -193,7 +192,7 @@ int waitingPlayer1(){
   int ipc_status;
   message msg;
   uint32_t r;
-  uint8_t nbyte = 0; //numero de bytes do scancode
+  uint8_t nbyte = 0; //scancode's number of bytes
   bool wait = false;
 
   uint32_t timer_irq_set = getTIMER_IRQ();
@@ -208,6 +207,8 @@ int waitingPlayer1(){
 
   drawBitmap(menu_back,0, 0, ALIGN_LEFT);
   doubleBuffCall();
+  clean_RBR();
+  
   while (scanByte != ESC_CODE && charReceived != '2') {
     if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) {
       printf("driver_receive failed with: %d\n", r);
@@ -223,16 +224,13 @@ int waitingPlayer1(){
           }
         }
         if (msg.m_notify.interrupts & kbc_irq_set) {
-          kbc_ih();
+          kbc_asm_ih();
 
           if (kbc_ih_error) {
             kbc_ih_error = false;
             continue;
           }
           isTwoByte(&wait, &nbyte);
-          if (wait == false) {
-            scancode_parse(scanByte, nbyte);
-          }
 
           tickdelay(micros_to_ticks(DELAY_US));
         }

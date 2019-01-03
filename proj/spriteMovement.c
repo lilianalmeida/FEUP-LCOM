@@ -1,19 +1,19 @@
 #include <lcom/lcf.h>
-#include "playerMovement.h"
+#include <math.h>
+
+#include "spriteMovement.h"
 #include "i8042.h"
-#include "bitmap.h"
 #include "keyboard.h"
 #include "video_gr.h"
 #include "serial_port.h"
-#include <math.h>
 
-int playerMovSpeed = 7;
-double ballMovSpeed = 9;
-static int aimx = 0;
-static int aimy = 0;
+int playerMovSpeed = 7; //speed of the player's movement
+double ballMovSpeed = 9; //initial ball speed
+static int aimx = 0; //position x of the aim of the mouse when ball collides with the player's racket
+static int aimy = 0; //position y of the aim of the mouse when ball collides with the player's racket
 
-//charReceived deve ser '0' quando é para mexer o player controlado pelo user
-// ou então é  w a s d i j k l consoante o char recebido no serial port
+//charReceived is '0' when the movement belongs to the player controlled by the user
+// or it's 'w' 'a' 's' 'd' 'i' 'j' 'k' 'l' depending on the char received by the serial port
 void set_move(Sprite *sp, uint8_t nbyte, char adversaryMov, bool isMulti) {
   if(adversaryMov == '0'){
     if((nbyte == 1 && scanByte==KEY_W) || (nbyte == 2 && scanByte == KEY_UP )) {
@@ -28,7 +28,7 @@ void set_move(Sprite *sp, uint8_t nbyte, char adversaryMov, bool isMulti) {
       sp->mov.MOVE_LEFT = true;
       if(isMulti)
       write_THR('a');
-    }else if((nbyte == 1 && scanByte==KEY_D) || (nbyte == 2 && scanByte == KEY_RIGTH)) {
+    }else if((nbyte == 1 && scanByte==KEY_D) || (nbyte == 2 && scanByte == KEY_RIGHT)) {
       sp->mov.MOVE_RIGHT = true;
       if(isMulti)
       write_THR('d');
@@ -44,7 +44,7 @@ void set_move(Sprite *sp, uint8_t nbyte, char adversaryMov, bool isMulti) {
       sp->mov.MOVE_LEFT = false;
       if(isMulti)
       write_THR('j');
-    }else if((nbyte == 1 && scanByte==KEY_D_BREAK) || (nbyte == 2 && scanByte == KEY_RIGTH_BREAK)) {
+    }else if((nbyte == 1 && scanByte==KEY_D_BREAK) || (nbyte == 2 && scanByte == KEY_RIGHT_BREAK)) {
       sp->mov.MOVE_RIGHT = false;
       if(isMulti)
       write_THR('l');
@@ -110,6 +110,7 @@ void movePlayer(Sprite* sp, uint32_t xLeft, uint32_t xRight){
     }
   }
 }
+
 void shootBall(Sprite* ball, Sprite* aim){
   ball->colided = false;
   ball->canColide = false;
@@ -118,10 +119,6 @@ void shootBall(Sprite* ball, Sprite* aim){
   int bally = ball->y;
   aimx = aim->x;
   aimy = aim->y;
-  /*  printf("x %d\n",ballx );
-  printf("y %d\n",bally );
-  printf("x %d\n",aimx );
-  printf("y %d\n",aimy );*/
 
   double angle = atan2((double)(aimy - bally),(aimx - ballx));
   float l = angle;
@@ -130,12 +127,9 @@ void shootBall(Sprite* ball, Sprite* aim){
   sprintf (buffer,  "a %f", l );
   printf("%s\n", buffer);
 
-  //  printf("t %d\n", ((double)(aimy - bally)/(aimx - ballx)));
-
   ball->xspeed = ballMovSpeed * cos(angle);
   ball->yspeed = ballMovSpeed * sin(angle);
-  //  printf("x %d\n",ball->xspeed );
-  //  printf("y %d\n",ball->yspeed );
+
 }
 
 int getAimx(){
@@ -158,5 +152,10 @@ void throwBall(Sprite* ball) {
   ball->xspeed = -ballMovSpeed* cos(angle*M_PI/180);
   ball->yspeed = -ballMovSpeed * sin(angle*M_PI/180);
 
-  ballMovSpeed += 0.1;
+  ballMovSpeed += 0.1;//increases difficulty
 }
+
+void resetBallSpeed(){
+  ballMovSpeed = 9;
+}
+

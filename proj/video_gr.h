@@ -3,20 +3,46 @@
 
 #include <stdint.h>
 
+/** @defgroup Video_gr Video_gr
+* @{
+* Functions for using the vbe
+*/
+
+/**
+ * @brief Returns information on the input VBE mode, including screen dimensions, color depth and VRAM physical address
+ *
+ * @param mode mode whose information should be returned
+ * @param vmi_p	address of vbe_mode_info_t structure to be initialized
+ * @return Return 0 upon success and non-zero otherwise
+ */
 int vbe_get_mode_inf(uint16_t mode, vbe_mode_info_t* vmi_p);
-int col(uint16_t x, uint16_t y, uint32_t color);
-int drawPattern (uint8_t no_rectangles, uint32_t first, uint8_t step);
-//int drawSprite (const char *xpm[], uint16_t x, uint16_t y);
-//void draw_sprite(Sprite *sp);
-//void erase_sprite(Sprite *sp);
-int vbe_get_controller_info();
 
-//void move_sprite(Sprite *sprite, uint16_t xi, uint16_t yi, uint16_t xf, uint16_t yf, int16_t speed);
-
+/**
+ * @brief Copies to the main buffer (video_mem) what is in the other buffer (drawingBuffer)
+ */
 void doubleBuffCall();
 
+/**
+ * @brief Returns the horizontal resolution in pixels
+ *
+ * @return Return horizontal resolution
+ */
 int getHorResolution();
+
+/**
+ * @brief Returns the vertical resolution in pixels
+ *
+ * @return Return vertical resolution
+ */
 int getVerResolution();
+
+/**
+ * @brief Returns thea address of the second buffer (drawingBuffer)
+ *
+ * @return Return address of the graphics buffer
+ */
 unsigned char *getGraphicsBuffer();
+
+/**@}*/
 
 #endif

@@ -2,22 +2,25 @@
 #include <stdint.h>
 #include "rtc_macros.h"
 
-
 //global variable
 static int hook_id_rtc = 0x04;
-//static int hook_id_uart = 0x05;
 
 int rtc_subscribe(uint8_t * bit_no) {
 
-  	uint32_t temp;
+  uint32_t temp;
 
-  	if (sys_outb(RTC_ADDR_REG, RTC_REG_B) != OK) return -1;
+  if (sys_outb(RTC_ADDR_REG, RTC_REG_B) != OK) 
+    return 1;
 
-  	sys_inb(RTC_DATA_REG, &temp);
+  if (sys_inb(RTC_DATA_REG, &temp) != OK)
+    return 1;
 
-  	temp = (temp & 0x27);
-  	if (sys_outb(RTC_ADDR_REG, RTC_REG_B) != OK) return -1;
-  	if (sys_outb(RTC_DATA_REG, temp) != OK) return -1;
+  temp = (temp & SET_REG_B) | RTC_UIE;
+  
+  if (sys_outb(RTC_ADDR_REG, RTC_REG_B) != OK) 
+    return 1;
+  if (sys_outb(RTC_DATA_REG, temp) != OK) 
+    return 1;
 
 	*bit_no = hook_id_rtc;
 
@@ -36,35 +39,3 @@ int rtc_unsubscribe() {
 	return 0;
 }
 
-uint32_t get_minutes_rtc(){
-  uint32_t min;
-  sys_outb(RTC_ADDR_REG, 0x02);
-  sys_inb(RTC_DATA_REG, &min);
-  return min;
-}
-uint32_t  get_hour_rtc(){
-  uint32_t min;
-  sys_outb(RTC_ADDR_REG, 0x04);
-  sys_inb(RTC_DATA_REG, &min);
-  return min;
-}
-uint32_t get_day_rtc(){
-  uint32_t min;
-  sys_outb(RTC_ADDR_REG, 0x07);
-  sys_inb(RTC_DATA_REG, &min);
-  return min;
-}
-
-uint32_t get_month_rtc(){
-  uint32_t min;
-  sys_outb(RTC_ADDR_REG, 0x08);
-  sys_inb(RTC_DATA_REG, &min);
-  return min;
-}
-
-uint32_t get_year_rtc(){
-  uint32_t min;
-  sys_outb(RTC_ADDR_REG, 0x09);
-  sys_inb(RTC_DATA_REG, &min);
-  return min;
-}

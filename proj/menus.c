@@ -1,17 +1,17 @@
 #include <lcom/lcf.h>
 #include <stdint.h>
+
+#include "menus.h"
 #include "i8042.h"
-#include "bitmap.h"
 #include "keyboard.h"
 #include "initGame.h"
-#include "mouse_test.h"
-#include "main_menu.h"
+#include "mouse.h"
 #include "video_gr.h"
 #include "game.h"
 #include "pointSystem.h"
 
-static menu_options opt = SINGLE_PL;
-static multiplayer_options mul_opt = PLAYER1;
+static menu_options opt = SINGLE_PL; //struct with the options of the single player menu
+static multiplayer_options mul_opt = PLAYER1; //struct with the options of the multiplayer menu
 static bool isMulti = false; //Used to distinguish between normal menus and multiplayer menus
 
 static bool exits = 0;
@@ -20,7 +20,7 @@ void startMenu(){
   int ipc_status;
   message msg;
   uint32_t r;
-  uint8_t nbyte = 0; //numero de bytes do scancode
+  uint8_t nbyte = 0; //scancode's number of bytes
   bool wait = false;
 
   uint32_t kbc_irq_set = getKBC_IRQ();
@@ -45,18 +45,18 @@ void startMenu(){
       switch (_ENDPOINT_P(msg.m_source)) {
         case HARDWARE: /* hardware interrupt notification */
         if (msg.m_notify.interrupts & kbc_irq_set) { /* subscribed interrupt */
-          kbc_ih();
+          kbc_asm_ih();
 
           if (kbc_ih_error) {
             kbc_ih_error = false;
             continue;
           }
           isTwoByte(&wait, &nbyte);
-          if (wait == false) {
-            scancode_parse(scanByte, nbyte);
+
+          if (!wait) {
+            parse_kbc_keys( nbyte);
+            menuSelector(menu_back, selector); //handles the moving and drawing
           }
-          parse_kbc_keys( nbyte);
-          menuSelector(menu_back, selector); //handles the moving and drawing
 
           tickdelay(micros_to_ticks(DELAY_US));
         }
@@ -79,7 +79,7 @@ void multiPlayerSelect(){
   int ipc_status;
   message msg;
   uint32_t r;
-  uint8_t nbyte = 0; //numero de bytes do scancode
+  uint8_t nbyte = 0; //scancode's number of bytes
   bool wait = false;
 
   uint32_t kbc_irq_set = getKBC_IRQ();
@@ -106,18 +106,17 @@ void multiPlayerSelect(){
       switch (_ENDPOINT_P(msg.m_source)) {
         case HARDWARE: /* hardware interrupt notification */
         if (msg.m_notify.interrupts & kbc_irq_set) { /* subscribed interrupt */
-          kbc_ih();
+          kbc_asm_ih();
 
           if (kbc_ih_error) {
             kbc_ih_error = false;
             continue;
           }
           isTwoByte(&wait, &nbyte);
-          if (wait == false) {
-            scancode_parse(scanByte, nbyte);
+          if (!wait) {
+            parse_kbc_keys(nbyte);
+            menuSelector(menu_back, selector); //handles the moving and drawing
           }
-          parse_kbc_keys(nbyte);
-          menuSelector(menu_back, selector); //handles the moving and drawing
 
           tickdelay(micros_to_ticks(DELAY_US));
         }

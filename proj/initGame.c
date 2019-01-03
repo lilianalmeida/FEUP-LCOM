@@ -1,10 +1,10 @@
 #include <lcom/lcf.h>
 
-#include "keyboard.h"
-#include "mouse_test.h"
-#include "vbe_macros.h"
 #include "initGame.h"
-#include "rtc_macros.h"
+#include "keyboard.h"
+#include "mouse.h"
+#include "vbe_macros.h"
+#include "rtc.h"
 #include "serial_port.h"
 
 static uint32_t timer_irq_set;

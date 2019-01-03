@@ -1,8 +1,6 @@
 #include <lcom/lcf.h>
-#include "mouse_test.h"
-#include "mouse_macros.h"
-#include "i8254.h"
-#include "bitmap.h"
+#include "mouse.h"
+#include "i8042.h"
 #include "video_gr.h"
 
 static int hook_id = 0x03;
@@ -76,7 +74,7 @@ int write_kbc(uint32_t cmd_byte){
 		if (sys_inb(STAT_REG, &status) != OK) return -1; // verify the status of the buffer
 
 		if ((status & IBF) == 0) {
-			sys_outb(KBC_CMD_REG, KBC_CMD_INIT); //prepares mouse for writing
+			sys_outb(KBC_CMD_REG, KBC_CMD_INIT); //allows the mouse to receive commands directly
 		}
 		if (sys_inb(STAT_REG, &status) != OK) return -1; // verify the status of the buffer
 

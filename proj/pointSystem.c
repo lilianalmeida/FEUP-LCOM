@@ -4,19 +4,18 @@
 
 #include "pointSystem.h"
 #include "initGame.h"
-#include "playerMovement.h"
-#include "bitmap.h"
+#include "spriteMovement.h"
 #include "video_gr.h"
 #include "keyboard.h"
 #include "i8042.h"
 #include "rtc_macros.h"
 #include "rtc.h"
-#include "mouse_test.h"
+#include "mouse.h"
 
 
-static int32_t score = 0;
-static Numbers numbers;
-static Time_RTC time_rtc;
+static int32_t score = 0; //points of the player in the current game
+static Numbers numbers; //struct with the bitmaps of the numbers to be drawn
+static Time_RTC time_rtc; //struct with the date
 
 void loadGameNumbers(){
   Bitmap* No0 = loadBitmap("/home/lcom/labs/proj/bmp/No0.bmp");
@@ -83,7 +82,7 @@ void deleteNumbers(){
   deleteBitmap(numbers.NoSlash);
 }
 
-bool pointHandler(Sprite*UNUSED(ball), Sprite *aim){
+bool pointHandler(Sprite *aim){
   int aimx = getAimx();
   int aimy = getAimy();
 
@@ -119,17 +118,17 @@ void printPoints(){
 
 void update_date (){
 
-  sys_outb(RTC_ADDR_REG, RTC_REG_C);
-  time_rtc.day = get_day_rtc();
-  time_rtc.month = get_month_rtc();
-  time_rtc.year = get_year_rtc();
-  time_rtc.hour = get_hour_rtc();
-  time_rtc.minutes = get_minutes_rtc();
+  rtc_ih_asm();
 
-  sys_outb(RTC_ADDR_REG, RTC_REG_B);
+  time_rtc.day = get_day_asm();
+  time_rtc.month = get_month_asm();
+  time_rtc.year = get_year_asm();
+  time_rtc.hour = get_hour_asm();
+  time_rtc.minutes = get_minutes_asm();
+
   uint32_t temp;
+  sys_outb(RTC_ADDR_REG, RTC_REG_B);
   sys_inb(RTC_DATA_REG, &temp);
-
 
   if (!(temp & BIT(2))) {
     BCD_to_binary(&time_rtc.hour);
@@ -138,8 +137,6 @@ void update_date (){
     BCD_to_binary(&time_rtc.month);
     BCD_to_binary(&time_rtc.day);
   }
-  sys_outb(RTC_ADDR_REG, RTC_REG_C);
-
 }
 
 void print_date (){
@@ -258,7 +255,7 @@ void highscoreScreen(){
   uint32_t kbc_irq_set = getKBC_IRQ();
   uint32_t mouse_irq_set = getMOUSE_IRQ();
 
-  uint8_t nbyte = 0; //numero de bytes do scancode
+  uint8_t nbyte = 0; //scancode's number of bytes
   bool wait = false;
 
   loadHighScoreNumbers();
@@ -281,21 +278,17 @@ void highscoreScreen(){
         case HARDWARE: /* hardware interrupt notification */
         if (msg.m_notify.interrupts & mouse_irq_set) {
 
-          OB_cleaner();
-
+          OB_cleaner(); //ignores any mouse interrupts
         }
         if (msg.m_notify.interrupts & kbc_irq_set) { /* subscribed interrupt */
-          kbc_ih();
+          kbc_asm_ih();
           if (kbc_ih_error) {
             kbc_ih_error = false;
             continue;
           }
           isTwoByte(&wait, &nbyte);
-          if (wait == false) {
-            scancode_parse(scanByte, nbyte);
-          }
-          tickdelay(micros_to_ticks(DELAY_US));
 
+          tickdelay(micros_to_ticks(DELAY_US));
         }
 
         break;
@@ -306,6 +299,8 @@ void highscoreScreen(){
       /* no standard messages expected: do nothing */
     }
   }
+  deleteNumbers();
+  deleteBitmap(background);
 }
 
 
@@ -316,6 +311,7 @@ int compare( const void* a, const void* b)
 
   return (HighscoreLine_a->points < HighscoreLine_b->points) - (HighscoreLine_a->points > HighscoreLine_b->points);
 }
+
 void setHighscores(int score){
 
   FILE *ptr_file;
@@ -329,7 +325,7 @@ void setHighscores(int score){
 
     char point[5];
     char date[15];
-    sprintf(date,"%x/%x/%x",(int)get_day_rtc(),(int)get_month_rtc(),(int)get_year_rtc());
+    sprintf(date,"%02x/%02x/%02x",(int)get_day_asm(),(int)get_month_asm(),(int)get_year_asm());
     char temp[20];
     HighscoreLine h[5];
     memset(temp, 0, 15);
@@ -354,7 +350,7 @@ void setHighscores(int score){
     char buf[20];
 
     for(int i =0; i<4; i++){
-      sprintf(buf, "%03d %s\n", h[i].points,h[i].date); //inserir a data depois
+      sprintf(buf, "%03d %s\n", h[i].points,h[i].date);
       fwrite(buf, strlen(buf), 1, ptr_file);
     }
 
@@ -411,11 +407,6 @@ void readHighscores(){
 
         print_numbers (year2, dateX[4], yPos[i]);//YEAR
         print_numbers (year1, dateX[5], yPos[i]);
-
-        /*printf("%d\n",points );
-        printf("%d\n",day );
-        printf("%d\n",month );
-        printf("%d\n",year );*/
 
       }
 
