@@ -12,7 +12,6 @@
 #include "rtc.h"
 #include "mouse.h"
 
-
 static int32_t score = 0; //points of the player in the current game
 static Numbers numbers; //struct with the bitmaps of the numbers to be drawn
 static Time_RTC time_rtc; //struct with the date
@@ -82,11 +81,13 @@ void deleteNumbers(){
   deleteBitmap(numbers.NoSlash);
 }
 
-bool pointHandler(Sprite *aim){
+
+
+bool pointHandler(Sprite *aim, int xLeft, int xRight){
   int aimx = getAimx();
   int aimy = getAimy();
 
-  if(aimx > getHorResolution()/2 && aimx < 1010- (int)aim->width && aimy > 236 && aimy < 591 -(int)aim->height){
+  if(aimx > xLeft && aimx < xRight - (int)aim->width && aimy > 236 && aimy < 591 -(int)aim->height){
     score++;
     resetAim();
     return true;
@@ -98,22 +99,26 @@ bool pointHandler(Sprite *aim){
   }
 }
 
-void printPoints(){
+void printPoints(bool isMulti, int score1, int score2){
+  if(!isMulti){
+    int units = score % 10;
+    int dozens = (score/10) % 10;
+    int hundreds = (score/100)%10;
 
-  int units = score % 10;
-  int dozens = (score/10) % 10;
-  int hundreds = (score/100)%10;
+    int32_t unitsX =110;
+    int32_t unitsY = 42;
+    int32_t dozensX =98;
+    int32_t dozensY=42;
+    int32_t hundredsX=86;
+    int32_t hundredsY=42;
 
-  int32_t unitsX =110;
-  int32_t unitsY = 42;
-  int32_t dozensX =98;
-  int32_t dozensY=42;
-  int32_t hundredsX=86;
-  int32_t hundredsY=42;
-
-  print_numbers (hundreds, hundredsX, hundredsY);
-  print_numbers (dozens, dozensX, dozensY);
-  print_numbers (units, unitsX, unitsY);
+    print_numbers (hundreds, hundredsX, hundredsY);
+    print_numbers (dozens, dozensX, dozensY);
+    print_numbers (units, unitsX, unitsY);
+  }else {
+    print_numbers (score1, 442, 28);
+    print_numbers (score2, 580, 28);
+    }
 }
 
 void update_date (){

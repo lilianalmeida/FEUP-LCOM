@@ -47,8 +47,8 @@ typedef struct{
 typedef struct{
   int32_t x; /**< @brief specifies the position x in pixels*/
   int32_t y; /**< @brief specifies the position x in pixels*/
-  uint32_t xspeed; /**< @brief specifies the horizontal speed of the sprite (negative if the sprite moves from right to left, positive otherwise)*/
-  uint32_t yspeed; /**< @brief specifies the vertical speed of the sprite (negative if the sprite moves upwards, positive otherwise)*/
+  int32_t xspeed; /**< @brief specifies the horizontal speed of the sprite (negative if the sprite moves from right to left, positive otherwise)*/
+  int32_t yspeed; /**< @brief specifies the vertical speed of the sprite (negative if the sprite moves upwards, positive otherwise)*/
   Bitmap *bmp; /**< @brief specifies the bitmap corresponding to the sprite*/
   uint32_t height; /**< @brief specifies height in pixels*/
   uint32_t width; /**< @brief specifies width in pixels*/
@@ -97,7 +97,7 @@ void deleteBitmap(Bitmap* bmp);
 Sprite* createSprite(Bitmap* bmp, uint32_t x, uint32_t y, uint32_t xspeed, uint32_t yspeed);
 
 /**
-* @brief Draws an unscaled, unrotated Sprite at the position especified in the sprite struct 
+* @brief Draws an unscaled, unrotated Sprite at the position especified in the sprite struct
 *
 * @param sp sprite to be drawn
 */
@@ -105,4 +105,3 @@ void drawSprite( Sprite* sp);
 /**@}*/
 
 #endif //_BITMAP_H_
-

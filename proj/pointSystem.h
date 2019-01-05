@@ -57,17 +57,20 @@ void deleteNumbers();
 /**
  * @brief Increases the score if the aim of the mouse was pointing inside the field
  *
- * If the aim of the mouse when the ball collided with the player's racket was inside the field (except the uppermost and lower rectangles) 
+ * If the aim of the mouse when the ball collided with the player's racket was inside the field (except the uppermost and lower rectangles)
  * the score increases one point, otherwise the game ends and the score is saved
  * @param aim sprite of the aim of the mouse
+ * @param xLeft Left boudarie of the aim position
+ * @param xRight Right boudarie of the aim position
  * @return Return true if the score increased, false otherwise
  */
-bool pointHandler(Sprite* aim);
+ bool pointHandler(Sprite *aim, int xLeft, int xRight);
 
 /**
  * @brief Prints the score
+ * @param isMulti Set to true if the game mode is multiplayer
  */
-void printPoints();
+ void printPoints(bool isMulti, int score1, int score2);
 
 /**
  * @brief Calls rtc handler in assembly and updates the date and time using RTC
@@ -80,7 +83,7 @@ void update_date ();
 void print_date ();
 
 /**
- * @brief Draws the digit given in the posision (x,y) received with the bitmaps saved in a Numbers struct 
+ * @brief Draws the digit given in the posision (x,y) received with the bitmaps saved in a Numbers struct
  *
  * @param digit digit to be drawn
  * @param pos_x position x of the digit
@@ -101,7 +104,7 @@ void BCD_to_binary(uint32_t * number);
 void highscoreScreen();
 
 /**
- * @brief Saves in the highscores text file the score of the player (ordered by score), if it's better than the other ones already saved 
+ * @brief Saves in the highscores text file the score of the player (ordered by score), if it's better than the other ones already saved
  *
  * @param score final score of the player
  */

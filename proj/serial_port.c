@@ -66,7 +66,7 @@ int read_RBR(uint32_t *byte){
     }
     else if(lsr_check & RECEIVER_DATA){
       sys_inb(RBR, byte);
-      printf("Received: %c \n",(char) *byte); //debug
+    //  printf("Received: %c \n",(char) *byte); //debug
       tickdelay(micros_to_ticks(10000));
       return 0;
     }
@@ -101,7 +101,7 @@ int write_THR(uint32_t byte){
       printf("Error reading LSR\n");
     } else if(lsr_check & THR_EMPTY){
       sys_outb(THR,byte);
-      printf("Transmited: %c\n", (char) byte);
+    //  printf("Transmited: %c\n", (char) byte);
       return 0;
     }
   }
@@ -208,7 +208,7 @@ int waitingPlayer1(){
   drawBitmap(menu_back,0, 0, ALIGN_LEFT);
   doubleBuffCall();
   clean_RBR();
-  
+
   while (scanByte != ESC_CODE && charReceived != '2') {
     if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) {
       printf("driver_receive failed with: %d\n", r);

@@ -71,6 +71,11 @@ void throwBall(Sprite* ball);
  */
 void resetBallSpeed();
 
+void printTest(uint16_t t);//APAGAR
+
+void remoteMoveBall(Sprite * ball, uint16_t movCode);
+
+
 /**@}*/
 
 #endif /* _SPRITEMOV_H_ */

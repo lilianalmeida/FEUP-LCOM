@@ -76,8 +76,6 @@ void set_move(Sprite *sp, uint8_t nbyte, char adversaryMov, bool isMulti) {
       sp->mov.MOVE_RIGHT = false;
     }
   }
-
-
 }
 
 void movePlayer(Sprite* sp, uint32_t xLeft, uint32_t xRight){
@@ -159,3 +157,44 @@ void resetBallSpeed(){
   ballMovSpeed = 9;
 }
 
+void remoteMoveBall(Sprite * ball, uint16_t movCode){
+  int32_t ySpeed = (movCode & (BIT(5)|BIT(6)|BIT(7)|BIT(8))) >> 5;
+  if (movCode & BIT(9))
+  ySpeed = -ySpeed;
+  printf("y: " );
+  printTest(ySpeed);
+
+
+  int32_t xSpeed = (movCode & (BIT(0)|BIT(1)|BIT(2)| BIT (3)))>> 0;
+  if (movCode & BIT(4))
+  xSpeed = -xSpeed;
+  printf("x: " );
+  printTest(xSpeed);
+
+  printf("pos x %d  pos y %d\n", ball->x, ball->y);
+
+
+  ball->xspeed = xSpeed;
+  ball->yspeed = ySpeed;
+
+}
+
+void printTest(uint16_t t){ // APAGAR ESTA FUNÇÃO
+
+  int k;
+  for (int c = 15; c >= 0; c--)
+  {
+    k = t >> c;
+
+    if(c == 2)
+    printf(" " );
+    if(c ==12)
+    printf(" ");
+
+    if (k & 1)
+    printf("1");
+    else
+    printf("0");
+  }
+  printf("\n" );
+}
