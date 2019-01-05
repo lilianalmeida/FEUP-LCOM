@@ -186,7 +186,7 @@ void gamePlayer1(){
   Bitmap* lose = loadBitmap("/home/lcom/labs/proj/bmp/YouLose.bmp");
 
 
-  Sprite* ball = createSprite(ball_bmp,200,500,5,0);
+  Sprite* ball = createSprite(ball_bmp,200,500,0,0);
   Sprite* player1 = createSprite(player1Right_bmp, 20,getVerResolution()/2,0,0);
   Sprite* player2 = createSprite(player2Right_bmp, getHorResolution()- player2Right_bmp->bitmapInfoHeader.width ,getVerResolution()/2,0,0);
   Sprite* aim = createSprite(aim_bmp, getHorResolution()/2,getVerResolution()/2,0,0);
@@ -232,21 +232,27 @@ void gamePlayer1(){
 
           if(player1Score == 5){
             drawBitmap(win, 244,236, ALIGN_LEFT);
+            doubleBuffCall();
+            sleep(2);
             scanByte = ESC_CODE;
+            continue;
           } else if (player2Score == 5){
             drawBitmap(lose, 244,236, ALIGN_LEFT);
+            doubleBuffCall();
+            sleep(2);
             scanByte = ESC_CODE;
+            continue;
           }
 
           if(ball->y <= 70 || ball->y > getVerResolution()|| ball->x < 1 || ball->x > getHorResolution()) {
             if(!pointHandler(aim, (int)getHorResolution(),1010)){
-              player2Score++;
+              player1Score++;
               ball->xspeed = 0;
               ball->yspeed = 0;
               ball->x = 90;
               ball->y = 500;
             }else {
-              player1Score++;
+              player2Score++;
               ball->xspeed = 0;
               ball->yspeed = 0;
               ball->x = 940;
@@ -268,32 +274,33 @@ void gamePlayer1(){
           movePlayer(player1, 0, (uint32_t) getHorResolution()/2);
           movePlayer(player2,(uint32_t) getHorResolution()/2,(uint32_t) getHorResolution());
 
-          if(ball->colided || isTransmiting) {
-            if (is_left_pressed() && !isTransmiting){
-              shootBall(ball, aim);
-              isTransmiting = true;
+
+          if(charSentNumber == 0){
+            if(ball->colided) {
+              if (is_left_pressed()){
+                shootBall(ball, aim);
+                isTransmiting = true;
+
+                SMSpeedX = ((ball->xspeed + (ball->xspeed >> 31)) ^ (ball->xspeed >> 31)) | ((ball->xspeed >> 31) << 4); //converts so signal and magnitude
+                SMSpeedY = ((ball->yspeed + (ball->yspeed >> 31)) ^ (ball->yspeed >> 31)) | ((ball->yspeed >> 31) << 4);
+
+                movToSend = 0x0000 |(BIT(15)| BIT(14) | BIT(13) | BIT(12)| BIT(11)| BIT(10)); //prepara a head e a tail
+
+
+                tempY = (SMSpeedY & (BIT(4) | BIT(3) | BIT(2) | BIT(1) | BIT(0))) << 5;
+                tempX = (SMSpeedX & (BIT(4) | BIT(3) | BIT(2) | BIT(1) | BIT(0))) << 0;
+
+                movToSend = movToSend |tempY | tempX; // int preparado para enviar
+                toSend = (movToSend & 0xff00) >> 8;
+                write_THR(toSend);
+                charSentNumber++;
+              }
             }
-            if(charSentNumber == 0){
-
-              SMSpeedX = ((ball->xspeed + (ball->xspeed >> 31)) ^ (ball->xspeed >> 31)) | ((ball->xspeed >> 31) << 4); //converts so signal and magnitude
-              SMSpeedY = ((ball->yspeed + (ball->yspeed >> 31)) ^ (ball->yspeed >> 31)) | ((ball->yspeed >> 31) << 4);
-
-              movToSend = 0x0000 |(BIT(15)| BIT(14) | BIT(13) | BIT(12)| BIT(11)| BIT(10)); //prepara a head e a tail
-
-
-              tempY = (SMSpeedY & (BIT(4) | BIT(3) | BIT(2) | BIT(1) | BIT(0))) << 5;
-              tempX = (SMSpeedX & (BIT(4) | BIT(3) | BIT(2) | BIT(1) | BIT(0))) << 0;
-
-              movToSend = movToSend |tempY | tempX; // int preparado para enviar
-              toSend = (movToSend & 0xff00) >> 8;
-              write_THR(toSend);
-              charSentNumber++;
-            } else if (charSentNumber == 1){
-              toSend = (movToSend & 0x00ff) >> 0;
-              write_THR(toSend);
-              isTransmiting = false;
-              charSentNumber = 0;
-            }
+          } else if (charSentNumber == 1){
+            toSend = (movToSend & 0x00ff) >> 0;
+            write_THR(toSend);
+            isTransmiting = false;
+            charSentNumber = 0;
           }
 
           drawBitmap(multiPlayerField_bmp,0, 0, ALIGN_LEFT);
@@ -403,7 +410,7 @@ void gamePlayer2(){
   Bitmap* win = loadBitmap("/home/lcom/labs/proj/bmp/YouWin.bmp");
   Bitmap* lose = loadBitmap("/home/lcom/labs/proj/bmp/YouLose.bmp");
 
-  Sprite* ball = createSprite(ball_bmp,200,500,5,0);
+  Sprite* ball = createSprite(ball_bmp,200,500,0,0);
   Sprite* player2 = createSprite(player2Right_bmp, getHorResolution()- player2Right_bmp->bitmapInfoHeader.width ,getVerResolution()/2,0,0);
   Sprite* player1 = createSprite(player1Right_bmp, 20,getVerResolution()/2,0,0);
   Sprite* aim = createSprite(aim_bmp, getHorResolution()/2,getVerResolution()/2,0,0);
@@ -447,10 +454,16 @@ void gamePlayer2(){
 
           if(player1Score == 5){
             drawBitmap(lose, 244,236, ALIGN_LEFT);
-            break;
+            doubleBuffCall();
+            sleep(2);
+            scanByte = ESC_CODE;
+            continue;
           } else if (player2Score == 5){
             drawBitmap(win, 244,236,ALIGN_LEFT);
-            break;
+            doubleBuffCall();
+            sleep(2);
+            scanByte = ESC_CODE;
+            continue;
           }
 
           if(ball->y <= 70 || ball->y > getVerResolution()|| ball->x < 1 || ball->x > getHorResolution()) {
@@ -482,90 +495,118 @@ void gamePlayer2(){
           movePlayer(player2,(uint32_t) getHorResolution()/2,(uint32_t) getHorResolution());
           movePlayer(player1, 0, (uint32_t) getHorResolution()/2);
 
-          if(ball->colided || isTransmiting) {
-            if (is_left_pressed() && !isTransmiting){
-              shootBall(ball, aim);
-              isTransmiting = true;
+          if(charSentNumber == 0){
+            if(ball->colided) {
+              if (is_left_pressed()){
+                shootBall(ball, aim);
+                isTransmiting = true;
+
+                SMSpeedX = ((ball->xspeed + (ball->xspeed >> 31)) ^ (ball->xspeed >> 31)) | ((ball->xspeed >> 31) << 4); //converts so signal and magnitude
+                SMSpeedY = ((ball->yspeed + (ball->yspeed >> 31)) ^ (ball->yspeed >> 31)) | ((ball->yspeed >> 31) << 4);
+
+                movToSend = 0x0000 |(BIT(15)| BIT(14) | BIT(13) | BIT(12)| BIT(11)| BIT(10)); //prepara a head e a tail
+
+
+                tempY = (SMSpeedY & (BIT(4) | BIT(3) | BIT(2) | BIT(1) | BIT(0))) << 5;
+                tempX = (SMSpeedX & (BIT(4) | BIT(3) | BIT(2) | BIT(1) | BIT(0))) << 0;
+
+                movToSend = movToSend |tempY | tempX; // int preparado para enviar
+                toSend = (movToSend & 0xff00) >> 8;
+                write_THR(toSend);
+                charSentNumber++;
+              }
             }
-            if(charSentNumber == 0){
-
-              SMSpeedX = ((ball->xspeed + (ball->xspeed >> 31)) ^ (ball->xspeed >> 31)) | ((ball->xspeed >> 31) << 4); //converts so signal and magnitude
-              SMSpeedY = ((ball->yspeed + (ball->yspeed >> 31)) ^ (ball->yspeed >> 31)) | ((ball->yspeed >> 31) << 4);
-
-              movToSend = 0x0000 |(BIT(15)| BIT(14) | BIT(13) | BIT(12)| BIT(11)| BIT(10)); //prepara a head e a tail
-
-
-              tempY = (SMSpeedY & (BIT(4) | BIT(3) | BIT(2) | BIT(1) | BIT(0))) << 5;
-              tempX = (SMSpeedX & (BIT(4) | BIT(3) | BIT(2) | BIT(1) | BIT(0))) << 0;
-
-              movToSend = movToSend |tempY | tempX; // int preparado para enviar
-              toSend = (movToSend & 0xff00) >> 8;
-              write_THR(toSend);
-              charSentNumber++;
-            } else if (charSentNumber == 1){
-              toSend = (movToSend & 0x00ff) >> 0;
-              write_THR(toSend);
-              isTransmiting = false;
-              charSentNumber = 0;
-            }
+          } else if (charSentNumber == 1){
+            toSend = (movToSend & 0x00ff) >> 0;
+            write_THR(toSend);
+            isTransmiting = false;
+            charSentNumber = 0;
           }
 
-          drawBitmap(multiPlayerField_bmp,0, 0, ALIGN_LEFT);
-          drawSprite(player2);
-          drawSprite(player1);
-          drawSprite(aim);
-          drawSprite(ball);
-          printPoints(1,player1Score,player2Score);
-          print_date();
-          doubleBuffCall();
+          /*if(ball->colided || isTransmiting) {
+          if (is_left_pressed() && !isTransmiting){
+          shootBall(ball, aim);
+          isTransmiting = true;
         }
-        if (msg.m_notify.interrupts & mouse_irq_set) {
-          mouse_ih();
+        if(charSentNumber == 0){
 
-          if (mouse_ih_error == true){
-            byteNumber = 0;
-            continue;
-          }
-          if(byteNumber == 3){
-            parse_packet();
-            move_aim (aim);
-            byteNumber = 0;
-          }
-        }
-        if(msg.m_notify.interrupts & uart_irq_set){
-          serialPort_handler(&charReceived);
-          //set_move(player1, 1, charReceived,1);
+        SMSpeedX = ((ball->xspeed + (ball->xspeed >> 31)) ^ (ball->xspeed >> 31)) | ((ball->xspeed >> 31) << 4); //converts so signal and magnitude
+        SMSpeedY = ((ball->yspeed + (ball->yspeed >> 31)) ^ (ball->yspeed >> 31)) | ((ball->yspeed >> 31) << 4);
 
-          if(((charReceived & 0xF8) == 0xF8) && (charRecNumber == 0)){
-            printf("charRecNumber: %d\n", charRecNumber);
-            receivedMov = 0x0000 |(charReceived << 8);
-            charRecNumber++;
-          } else if(charRecNumber == 1){
-            printf("charRecNumber: %d\n", charRecNumber);
-            receivedMov = receivedMov |(charReceived << 0);
-            printTest(receivedMov);
-            charRecNumber = 0;
-            remoteMoveBall(ball, receivedMov);
-          } else{
-            printf("Not a ball packet\n" );
-            set_move(player1, 1, charReceived,1);
-            charRecNumber = 0;
-          }
-        }
-        break;
-        default:
-        break;
-      }
-    } else {
+        movToSend = 0x0000 |(BIT(15)| BIT(14) | BIT(13) | BIT(12)| BIT(11)| BIT(10)); //prepara a head e a tail
 
+
+        tempY = (SMSpeedY & (BIT(4) | BIT(3) | BIT(2) | BIT(1) | BIT(0))) << 5;
+        tempX = (SMSpeedX & (BIT(4) | BIT(3) | BIT(2) | BIT(1) | BIT(0))) << 0;
+
+        movToSend = movToSend |tempY | tempX; // int preparado para enviar
+        toSend = (movToSend & 0xff00) >> 8;
+        write_THR(toSend);
+        charSentNumber++;
+      } else if (charSentNumber == 1){
+      toSend = (movToSend & 0x00ff) >> 0;
+      write_THR(toSend);
+      isTransmiting = false;
+      charSentNumber = 0;
     }
+  }*/
+
+  drawBitmap(multiPlayerField_bmp,0, 0, ALIGN_LEFT);
+  drawSprite(player2);
+  drawSprite(player1);
+  drawSprite(aim);
+  drawSprite(ball);
+  printPoints(1,player1Score,player2Score);
+  print_date();
+  doubleBuffCall();
+}
+if (msg.m_notify.interrupts & mouse_irq_set) {
+  mouse_ih();
+
+  if (mouse_ih_error == true){
+    byteNumber = 0;
+    continue;
   }
-  deleteNumbers();
-  deleteBitmap(ball_bmp);
-  deleteBitmap(aim_bmp);
-  deleteBitmap(multiPlayerField_bmp);
-  deleteBitmap(player2Right_bmp);
-  deleteBitmap(player2Left_bmp);
-  deleteBitmap(player1Right_bmp);
-  deleteBitmap(player1Left_bmp);
+  if(byteNumber == 3){
+    parse_packet();
+    move_aim (aim);
+    byteNumber = 0;
+  }
+}
+if(msg.m_notify.interrupts & uart_irq_set){
+  serialPort_handler(&charReceived);
+  //set_move(player1, 1, charReceived,1);
+
+  if(((charReceived & 0xF8) == 0xF8) && (charRecNumber == 0)){
+    printf("charRecNumber: %d\n", charRecNumber);
+    receivedMov = 0x0000 |(charReceived << 8);
+    charRecNumber++;
+  } else if(charRecNumber == 1){
+    printf("charRecNumber: %d\n", charRecNumber);
+    receivedMov = receivedMov |(charReceived << 0);
+    printTest(receivedMov);
+    charRecNumber = 0;
+    remoteMoveBall(ball, receivedMov);
+  } else{
+    printf("Not a ball packet\n" );
+    set_move(player1, 1, charReceived,1);
+    charRecNumber = 0;
+  }
+}
+break;
+default:
+break;
+}
+} else {
+
+}
+}
+deleteNumbers();
+deleteBitmap(ball_bmp);
+deleteBitmap(aim_bmp);
+deleteBitmap(multiPlayerField_bmp);
+deleteBitmap(player2Right_bmp);
+deleteBitmap(player2Left_bmp);
+deleteBitmap(player1Right_bmp);
+deleteBitmap(player1Left_bmp);
 }
