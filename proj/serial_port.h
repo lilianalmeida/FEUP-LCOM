@@ -23,63 +23,63 @@ int serialPort_subscribe(uint8_t * bit_no);
 int serialPort_unsubscribe();
 
 /**
- * @brief NEEDS TO BE DONE!!!!!!
+ * @brief Handles the chars received if there are any
  *
- * @param scancode
- * @return
+ * @param scancode holds the char received
+ * @return Return 0 upon success and non-zero otherwise
  */
 int serialPort_handler(uint32_t *scancode);
 
 /**
- * @brief NEEDS TO BE DONE!!!!!!
+ * @brief Reads the Receiver Buffer Register
  *
- * @param byte
- * @return
+ * @param byte gets changed according to what is received
+ * @return Return 0 upon success and non-zero otherwise
  */
 int read_RBR(uint32_t *byte);
 
 /**
- * @brief NEEDS TO BE DONE!!!!!!
+ * @brief Reads LSR
  *
- * @param lsr_byte
- * @return
+ * @param lsr_byte  gets changed according to what is read
+ * @return Return 0 upon success and non-zero otherwise
  */
 int read_LSR(uint32_t * lsr_byte);
 
 /**
- * @brief NEEDS TO BE DONE!!!!!!
+ * @brief Reads the Interrupt Identification Register
  *
- * @param iir_check
- * @return
+ * @param iir_check  gets changed according to what is read
+ * @return Return 0 upon success and non-zero otherwise
  */
 int read_IIR(uint32_t * iir_check);
 
 /**
- * @brief NEEDS TO BE DONE!!!!!!
+ * @brief Writes a char to be sent to the THR
  *
- * @param byte
- * @return
+ * @param byte byte with the char info to send
+ * @return Return 0 upon success and non-zero otherwise
  */
 int write_THR(uint32_t byte);
 
 /**
- * @brief NEEDS TO BE DONE!!!!!!
+ * @brief Cleans the Receiver Buffer Register
  *
- * @return
+ * @return Return 0 upon success and non-zero otherwise
  */
 int clean_RBR();
 
 /**
- * @brief NEEDS TO BE DONE!!!!!!
+ * @brief Guarantees that both players are connected and in sync. One computer must call this function while the other call waitingPlayer1.
  *
- * @return
+ * @return Return 0 upon success and non-zero otherwise
  */
 int waitingPlayer2();
 
 /**
- * @brief NEEDS TO BE DONE!!!!!!
+ * @brief Guarantees that both players are connected and in sync. One computer must call this function while the other call waitingPlayer2.
  *
- * @return
+ * @return Return 0 upon success and non-zero otherwise
  */
 int waitingPlayer1();
 /**@}*/
