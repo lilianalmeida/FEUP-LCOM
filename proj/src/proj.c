@@ -33,11 +33,10 @@ int main(int argc, char *argv[]) {
 int (proj_main_loop) (int argc, char* argv[]) {
 
   if (argc != 1){
-    printf("Wrong number of arguments! It is supposed to be one with the path of the files.");
+    printf("Wrong number of arguments! Usage:\n  lcom_run proj \"<directory of the folder with all images>\"\n     e.g.: lcom_run proj \"/home/lcom/labs/proj/res\"\n");
     return 1;
   }
   strcpy(path, *argv);
- printf("%s(%d, %c): under construction\n", __func__, argc, *(argv));
 
   sys_enable_iop(SELF);
 

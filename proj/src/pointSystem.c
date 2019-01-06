@@ -12,23 +12,23 @@
 #include "rtc.h"
 #include "mouse.h"
 
-char path[50]; //path for all files
-char stringggg[50];
+char path[100]; //partial path of all images
+char path_temp[150];
 static int32_t score = 0; //points of the player in the current game
 static Numbers numbers; //struct with the bitmaps of the numbers to be drawn
 static Time_RTC time_rtc; //struct with the date
 
 void loadGameNumbers(){
-  Bitmap* No0 = loadBitmap("/home/lcom/labs/proj/bmp/No0.bmp");
-  Bitmap* No1 = loadBitmap("/home/lcom/labs/proj/bmp/No1.bmp");
-  Bitmap* No2 = loadBitmap("/home/lcom/labs/proj/bmp/No2.bmp");
-  Bitmap* No3 = loadBitmap("/home/lcom/labs/proj/bmp/No3.bmp");
-  Bitmap* No4 = loadBitmap("/home/lcom/labs/proj/bmp/No4.bmp");
-  Bitmap* No5 = loadBitmap("/home/lcom/labs/proj/bmp/No5.bmp");
-  Bitmap* No6 = loadBitmap("/home/lcom/labs/proj/bmp/No6.bmp");
-  Bitmap* No7 = loadBitmap("/home/lcom/labs/proj/bmp/No7.bmp");
-  Bitmap* No8 = loadBitmap("/home/lcom/labs/proj/bmp/No8.bmp");
-  Bitmap* No9 = loadBitmap("/home/lcom/labs/proj/bmp/No9.bmp");
+  Bitmap* No0 = loadBitmap(appendPath("/No0.bmp",path_temp));
+  Bitmap* No1 = loadBitmap(appendPath("/No1.bmp",path_temp));
+  Bitmap* No2 = loadBitmap(appendPath("/No2.bmp",path_temp));
+  Bitmap* No3 = loadBitmap(appendPath("/No3.bmp",path_temp));
+  Bitmap* No4 = loadBitmap(appendPath("/No4.bmp",path_temp));
+  Bitmap* No5 = loadBitmap(appendPath("/No5.bmp",path_temp));
+  Bitmap* No6 = loadBitmap(appendPath("/No6.bmp",path_temp));
+  Bitmap* No7 = loadBitmap(appendPath("/No7.bmp",path_temp));
+  Bitmap* No8 = loadBitmap(appendPath("/No8.bmp",path_temp));
+  Bitmap* No9 = loadBitmap(appendPath("/No9.bmp",path_temp));
 
   numbers.No0 = No0;
   numbers.No1 = No1;
@@ -40,20 +40,22 @@ void loadGameNumbers(){
   numbers.No7 = No7;
   numbers.No8 = No8;
   numbers.No9 = No9;
+
+  score = 0;
 }
 void loadHighScoreNumbers(){
-  Bitmap* No0 = loadBitmap("/home/lcom/labs/proj/bmp/No0Y.bmp");
-  Bitmap* No1 = loadBitmap("/home/lcom/labs/proj/bmp/No1Y.bmp");
-  Bitmap* No2 = loadBitmap("/home/lcom/labs/proj/bmp/No2Y.bmp");
-  Bitmap* No3 = loadBitmap("/home/lcom/labs/proj/bmp/No3Y.bmp");
-  Bitmap* No4 = loadBitmap("/home/lcom/labs/proj/bmp/No4Y.bmp");
-  Bitmap* No5 = loadBitmap("/home/lcom/labs/proj/bmp/No5Y.bmp");
-  Bitmap* No6 = loadBitmap("/home/lcom/labs/proj/bmp/No6Y.bmp");
-  Bitmap* No7 = loadBitmap("/home/lcom/labs/proj/bmp/No7Y.bmp");
-  Bitmap* No8 = loadBitmap("/home/lcom/labs/proj/bmp/No8Y.bmp");
-  Bitmap* No9 = loadBitmap("/home/lcom/labs/proj/bmp/No9Y.bmp");
-  Bitmap* NoDash = loadBitmap("/home/lcom/labs/proj/bmp/NoDashY.bmp");
-  Bitmap* NoSlash = loadBitmap("/home/lcom/labs/proj/bmp/NoSlashY.bmp");
+  Bitmap* No0 = loadBitmap(appendPath("/No0Y.bmp",path_temp));
+  Bitmap* No1 = loadBitmap(appendPath("/No1Y.bmp",path_temp));
+  Bitmap* No2 = loadBitmap(appendPath("/No2Y.bmp",path_temp));
+  Bitmap* No3 = loadBitmap(appendPath("/No3Y.bmp",path_temp));
+  Bitmap* No4 = loadBitmap(appendPath("/No4Y.bmp",path_temp));
+  Bitmap* No5 = loadBitmap(appendPath("/No5Y.bmp",path_temp));
+  Bitmap* No6 = loadBitmap(appendPath("/No6Y.bmp",path_temp));
+  Bitmap* No7 = loadBitmap(appendPath("/No7Y.bmp",path_temp));
+  Bitmap* No8 = loadBitmap(appendPath("/No8Y.bmp",path_temp));
+  Bitmap* No9 = loadBitmap(appendPath("/No9Y.bmp",path_temp));
+  Bitmap* NoDash = loadBitmap(appendPath("/NoDashY.bmp",path_temp));
+  Bitmap* NoSlash = loadBitmap(appendPath("/NoSlashY.bmp",path_temp));
 
   numbers.No0 = No0;
   numbers.No1 = No1;
@@ -101,6 +103,26 @@ bool pointHandler(Sprite *aim, int xLeft, int xRight){
   }
 }
 
+bool pointHandlerMulti(Sprite *ball, int player, int xLimit){
+
+  if (player == 1){
+    if(ball->x > xLimit- (int)ball->width){
+     return true;
+    }
+    else{
+      return false;
+    }
+  }else{
+    if(ball->x < xLimit - (int)ball->width){
+     return true;
+    }
+    else{
+      return false;
+    }
+  }
+}
+
+
 void printPoints(bool isMulti, int score1, int score2){
   if(!isMulti){
     int units = score % 10;
@@ -110,9 +132,9 @@ void printPoints(bool isMulti, int score1, int score2){
     int32_t unitsX =110;
     int32_t unitsY = 42;
     int32_t dozensX =98;
-    int32_t dozensY=42;
-    int32_t hundredsX=86;
-    int32_t hundredsY=42;
+    int32_t dozensY = 42;
+    int32_t hundredsX = 86;
+    int32_t hundredsY = 42;
 
     print_numbers (hundreds, hundredsX, hundredsY);
     print_numbers (dozens, dozensX, dozensY);
@@ -262,12 +284,12 @@ void highscoreScreen(){
   uint32_t kbc_irq_set = getKBC_IRQ();
   uint32_t mouse_irq_set = getMOUSE_IRQ();
 
-  uint8_t nbyte = 0; //scancode's number of bytes
+  uint8_t nbyte = 0; //scanByte's number of bytes
   bool wait = false;
 
   loadHighScoreNumbers();
 
-  Bitmap* background = loadBitmap("/home/lcom/labs/proj/bmp/HighscoreBackground.bmp");
+  Bitmap* background = loadBitmap(appendPath("/HighscoreBackground.bmp",path_temp));
 
   drawBitmap(background,0,0, ALIGN_LEFT);
   readHighscores();//Displays the highscoreScreen
@@ -322,15 +344,10 @@ int compare( const void* a, const void* b)
 void setHighscores(int score){
 
   FILE *ptr_file;
-  char str1[50], str3[50];
-  strcpy (str1, "Highscores.txt");
-  strcpy (str3, path);
-  //char * str3 = (char *) malloc(1 + strlen(path)+ strlen(str1) );
-  strcat(str3, str1);
-  ptr_file = fopen(str3, "r+");
+  ptr_file = fopen("/home/lcom/labs/proj/src/Highscores.txt", "r+");
 
   if (ptr_file== NULL){
-    printf("Failed to open Highscore.txt\n" );
+    printf("Failed to open Highscores.txt\n" );
     return;
   } else{
 
@@ -373,10 +390,10 @@ void setHighscores(int score){
 
 void readHighscores(){
   FILE *ptr_file;
-  ptr_file = fopen(appendPath("/Highscores.txt",stringggg), "r");
+  ptr_file = fopen("/home/lcom/labs/proj/src/Highscores.txt", "r");
 
   if (ptr_file== NULL){
-    printf("Failed to open Highscore.txt\n" );
+    printf("Failed to open Highscores.txt\n" );
     return;
   } else{
     char str[20];
@@ -386,7 +403,7 @@ void readHighscores(){
 
     for(int i =0; i<4; i++){ //repeat for every line
       if(  fgets (str, 20, ptr_file) == NULL){
-        printf("Failed to read Highscore.txt\n" );
+        printf("Failed to read Highscores.txt\n" );
         return;
       }else{
         int points = atoi(memcpy(temp,str,4));
@@ -429,7 +446,7 @@ void readHighscores(){
 
 
 char* appendPath (char* nameFile, char* abs_path){
-  char str1[50];
+  char str1[150];
   strcpy (str1, nameFile);
   strcpy (abs_path, path);
   strcat(abs_path, str1);

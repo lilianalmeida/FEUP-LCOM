@@ -39,8 +39,10 @@ typedef struct{
 }HighscoreLine;
 
 
+
 /**
  * @brief Loads the bmp images of the numbers to use in the score and the date in the game and puts them in a Numbers struct
+ *  Resets the score to 0
  */
 void loadGameNumbers();
 
@@ -60,11 +62,23 @@ void deleteNumbers();
  * If the aim of the mouse when the ball collided with the player's racket was inside the field (except the uppermost and lower rectangles)
  * the score increases one point, otherwise the game ends and the score is saved
  * @param aim sprite of the aim of the mouse
- * @param xLeft Left boudarie of the aim position
- * @param xRight Right boudarie of the aim position
+ * @param xLeft left boudarie of the aim position
+ * @param xRight right boudarie of the aim position
  * @return Return true if the score increased, false otherwise
  */
  bool pointHandler(Sprite *aim, int xLeft, int xRight);
+
+/**
+ * @brief Checks who should receive a point, the player given or the opponent
+ *
+ * According to the player given, if the ball left the screen in the half of the opponent's field he needs to get a point,
+ * if not the opponent shoud get a point
+ * @param ball sprite of the ball
+ * @param player number of the player
+ * @param xLimit limit to be consider of the ball position
+ * @return Return true if the player gets a point, false otherwise
+ */
+ bool pointHandlerMulti(Sprite *ball, int player, int xLimit);
 
 /**
  * @brief Prints the score
@@ -117,6 +131,13 @@ void setHighscores(int score);
  */
 void readHighscores();
 
+/**
+ * @brief Concatenates the path given in the command line arguments and the name of the file given
+ *
+ * @param nameFile name of the file to be accessed
+ * @param abs_path array of chars to help concatenate
+ * @return Returns the path of the file so it can be accessed
+ */
 char* appendPath (char* nameFile, char* abs_path);
 
 /**@}*/

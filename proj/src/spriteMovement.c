@@ -7,8 +7,8 @@
 #include "video_gr.h"
 #include "serial_port.h"
 
-int playerMovSpeed = 7; //speed of the player's movement
-double ballMovSpeed = 9; //initial ball speed
+static int playerMovSpeed = 7; //speed of the player's movement
+static double ballMovSpeed = 8; //initial ball speed
 static int aimx = 0; //position x of the aim of the mouse when ball collides with the player's racket
 static int aimy = 0; //position y of the aim of the mouse when ball collides with the player's racket
 
@@ -119,14 +119,22 @@ void shootBall(Sprite* ball, Sprite* aim){
   aimy = aim->y;
 
   double angle = atan2((double)(aimy - bally),(aimx - ballx));
-  float l = angle;
-  printf("a %f \n",l);
-  char buffer[20];
-  sprintf (buffer,  "a %f", l );
-  printf("%s\n", buffer);
 
   ball->xspeed = ballMovSpeed * cos(angle);
   ball->yspeed = ballMovSpeed * sin(angle);
+
+  //Maximum speed is 15 in each direction
+  if (ball->xspeed >= 15){
+    ball->xspeed = 15;
+  }else if (ball->xspeed <= -15){
+    ball->xspeed = -15;
+  }
+  
+  if (ball->yspeed >= 15){
+    ball->yspeed = 15;
+  }else if (ball->yspeed <= -15){
+    ball->yspeed = -15;
+  }
 
 }
 
@@ -146,33 +154,43 @@ void throwBall(Sprite* ball) {
   int angle = ((rand() % 50) - 25);
   ball->x = 4* getHorResolution()/5;
   ball->y = getVerResolution()/2;
-  printf("reset\n");
   ball->xspeed = -ballMovSpeed* cos(angle*M_PI/180);
   ball->yspeed = -ballMovSpeed * sin(angle*M_PI/180);
 
   ballMovSpeed += 0.1;//increases difficulty
+
+//Maximum speed is 15 in each direction
+  if (ball->xspeed >= 15){
+    ball->xspeed = 15;
+  }else if (ball->xspeed <= -15){
+    ball->xspeed = -15;
+  }
+  
+  if (ball->yspeed >= 15){
+    ball->yspeed = 15;
+  }else if (ball->yspeed <= -15){
+    ball->yspeed = -15;
+  }
 }
 
 void resetBallSpeed(){
-  ballMovSpeed = 9;
+  ballMovSpeed = 8;
 }
 
 void remoteMoveBall(Sprite * ball, uint16_t movCode){
   int32_t ySpeed = (movCode & (BIT(5)|BIT(6)|BIT(7)|BIT(8))) >> 5;
   if (movCode & BIT(9))
   ySpeed = -ySpeed;
-  printf("y: " );
 
 
   int32_t xSpeed = (movCode & (BIT(0)|BIT(1)|BIT(2)| BIT (3)))>> 0;
   if (movCode & BIT(4))
   xSpeed = -xSpeed;
-  printf("x: " );
-
-  printf("pos x %d  pos y %d\n", ball->x, ball->y);
 
 
   ball->xspeed = xSpeed;
   ball->yspeed = ySpeed;
+  if (!ball->canColide)
+    ball->canColide = true;
 
 }

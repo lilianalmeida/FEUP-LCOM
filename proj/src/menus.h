@@ -3,7 +3,7 @@
 
 #include "bitmap.h"
 
-extern char path[50];
+extern char path[100]; //partial path of all images
 
 /** @defgroup Menus Menus
 * @{
