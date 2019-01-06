@@ -4,7 +4,7 @@ SRCS = proj.c bitmap.c keyboard.c mouse.c video_gr.c timer.c game.c menus.c init
 
 CPPFLAGS += -pedantic #-D __LCOM_OPTIMIZED__
 
-DPADD += ${LIBLCF}
-LDADD += -llcf
+DPADD += ${LIBLCF} ${LIBLM}
+LDADD += -llcf -llm
 
 .include <minix.lcom.mk>

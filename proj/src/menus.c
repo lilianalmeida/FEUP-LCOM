@@ -12,7 +12,8 @@
 
 static menu_options opt = SINGLE_PL; //struct with the options of the single player menu
 static multiplayer_options mul_opt = PLAYER1; //struct with the options of the multiplayer menu
-static bool isMulti = false; //Used to distinguish between normal menus and multiplayer menus
+static bool isMulti = false; //used to distinguish between normal menus and multiplayer menus
+char path_temp[150];
 
 static bool exits = 0;
 
@@ -20,14 +21,14 @@ void startMenu(){
   int ipc_status;
   message msg;
   uint32_t r;
-  uint8_t nbyte = 0; //scancode's number of bytes
+  uint8_t nbyte = 0; //scanByte's number of bytes
   bool wait = false;
 
   uint32_t kbc_irq_set = getKBC_IRQ();
   uint32_t mouse_irq_set = getMOUSE_IRQ();
 
-  Bitmap* menu_back = loadBitmap("/home/lcom/labs/proj/bmp/MenuBackground.bmp");
-  Bitmap* selec = loadBitmap("/home/lcom/labs/proj/bmp/Selector.bmp");
+  Bitmap* menu_back = loadBitmap(appendPath("/MenuBackground.bmp",path_temp));
+  Bitmap* selec = loadBitmap(appendPath("/Selector.bmp",path_temp));
 
   drawBitmap(menu_back,0, 0, ALIGN_LEFT);
   Sprite* selector = createSprite(selec, 47,264,0,0);
@@ -79,7 +80,7 @@ void multiPlayerSelect(){
   int ipc_status;
   message msg;
   uint32_t r;
-  uint8_t nbyte = 0; //scancode's number of bytes
+  uint8_t nbyte = 0; //scanByte's number of bytes
   bool wait = false;
 
   uint32_t kbc_irq_set = getKBC_IRQ();
@@ -87,8 +88,8 @@ void multiPlayerSelect(){
 
   isMulti = true; //changes to multiplayer menus
 
-  Bitmap* menu_back = loadBitmap("/home/lcom/labs/proj/bmp/MultiPlayerSelection.bmp");
-  Bitmap* selec = loadBitmap("/home/lcom/labs/proj/bmp/Selector.bmp");
+  Bitmap* menu_back = loadBitmap(appendPath("/MultiPlayerSelection.bmp",path_temp));
+  Bitmap* selec = loadBitmap(appendPath("/Selector.bmp",path_temp));
 
   drawBitmap(menu_back,0, 0, ALIGN_LEFT);
   Sprite* selector = createSprite(selec, 47,383,0,0);

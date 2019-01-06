@@ -113,7 +113,6 @@ int devices_end() {
   }
 
   vg_exit();
-  printf("Set to text mode\n");
 
   return 0;
 }

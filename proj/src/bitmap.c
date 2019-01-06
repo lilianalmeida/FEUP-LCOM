@@ -10,8 +10,9 @@ Bitmap* loadBitmap(const char* filename) {
   // open filename in read binary mode
   FILE *filePtr;
   filePtr = fopen(filename, "rb");
-  if (filePtr == NULL)
-  return NULL;
+  if (filePtr == NULL){
+    return NULL;
+  }
 
   // read the bitmap file header
   BitmapFileHeader bitmapFileHeader;
@@ -186,7 +187,7 @@ Bitmap* loadBitmap(const char* filename) {
 
       int j;
       for(j = 0; j < drawWidth * 2; j += 2){
-        if((imgStartPos[j]!=0x1F && imgStartPos[j+1] != 0xF8) && (bufferStartPos[j]==0x00 && bufferStartPos[j+1] == 0x80))
+        if((imgStartPos[j]!=0x1F && imgStartPos[j+1] != 0xF8) && (bufferStartPos[j]==0x00 && bufferStartPos[j+1] == 0x80)) //checking collision
         {
           if(sp->canColide && !sp->colided){
             sp->colided = true;
@@ -194,15 +195,11 @@ Bitmap* loadBitmap(const char* filename) {
 
         }
 
-        if(imgStartPos[j]!=0x1F && imgStartPos[j+1] != 0xF8){
+        if(imgStartPos[j]!=0x1F && imgStartPos[j+1] != 0xF8){ //transparency
           bufferStartPos[j] = imgStartPos[j];
           bufferStartPos[j+1] = imgStartPos[j+1];
         }
       }
-    }
-
-    if(sp->x > (getHorResolution()/2) && !sp->canColide){
-      sp->canColide = true;
     }
 
   }

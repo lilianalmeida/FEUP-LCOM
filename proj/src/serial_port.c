@@ -9,8 +9,10 @@
 #include "i8042.h"
 #include "mouse.h"
 #include "video_gr.h"
+#include "pointSystem.h"
 
 static int hook_id_uart = 5;
+char path_temp [150];
 
 int serialPort_subscribe(uint8_t * bit_no) {
 
@@ -66,7 +68,6 @@ int read_RBR(uint32_t *byte){
     }
     else if(lsr_check & RECEIVER_DATA){
       sys_inb(RBR, byte);
-    //  printf("Received: %c \n",(char) *byte); //debug
       tickdelay(micros_to_ticks(10000));
       return 0;
     }
@@ -101,7 +102,6 @@ int write_THR(uint32_t byte){
       printf("Error reading LSR\n");
     } else if(lsr_check & THR_EMPTY){
       sys_outb(THR,byte);
-    //  printf("Transmited: %c\n", (char) byte);
       return 0;
     }
   }
@@ -122,9 +122,8 @@ int waitingPlayer2(){
   int ipc_status;
   message msg;
   uint32_t r;
-  uint8_t nbyte = 0; //scancode's number of bytes
+  uint8_t nbyte = 0; //scanByte's number of bytes
   bool wait = false;
-
   uint32_t timer_irq_set = getTIMER_IRQ();
   uint32_t kbc_irq_set = getKBC_IRQ();
   uint32_t mouse_irq_set = getMOUSE_IRQ();
@@ -133,11 +132,12 @@ int waitingPlayer2(){
   uint32_t charReceived = 'e'; //char random
 
 
-  Bitmap* menu_back = loadBitmap("/home/lcom/labs/proj/bmp/waitingPlayer2.bmp");
+  Bitmap* menu_back = loadBitmap(appendPath("/waitingPlayer2.bmp",path_temp));
 
   drawBitmap(menu_back,0, 0, ALIGN_LEFT);
   doubleBuffCall();
   clean_RBR();
+  counter_t = 0; //resets timer's counter
 
   while (scanByte != ESC_CODE && charReceived != '1') {
     if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) {
@@ -148,11 +148,10 @@ int waitingPlayer2(){
       switch (_ENDPOINT_P(msg.m_source)) {
         case HARDWARE:
         if (msg.m_notify.interrupts & timer_irq_set) {
-          if((counter_t % 2) ==0){
+          timer_int_handler();
+          if((counter_t % 1) ==0){
             clean_RBR();
             write_THR('2');
-
-            //printf("sent\n");
           }
         }
         if (msg.m_notify.interrupts & kbc_irq_set) {
@@ -182,7 +181,6 @@ int waitingPlayer2(){
   }
   deleteBitmap(menu_back);
   if(scanByte == ESC_CODE){
-    printf("Exited with esc\n" );
     return 1;
   }
 
@@ -192,7 +190,7 @@ int waitingPlayer1(){
   int ipc_status;
   message msg;
   uint32_t r;
-  uint8_t nbyte = 0; //scancode's number of bytes
+  uint8_t nbyte = 0; //scanByte's number of bytes
   bool wait = false;
 
   uint32_t timer_irq_set = getTIMER_IRQ();
@@ -203,11 +201,12 @@ int waitingPlayer1(){
 
   uint32_t charReceived = 'e'; //char random
 
-  Bitmap* menu_back = loadBitmap("/home/lcom/labs/proj/bmp/waitingPlayer1.bmp");
+  Bitmap* menu_back = loadBitmap(appendPath("/waitingPlayer1.bmp",path_temp));
 
   drawBitmap(menu_back,0, 0, ALIGN_LEFT);
   doubleBuffCall();
   clean_RBR();
+  counter_t = 0; //resets timer's counter
 
   while (scanByte != ESC_CODE && charReceived != '2') {
     if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) {
@@ -218,7 +217,8 @@ int waitingPlayer1(){
       switch (_ENDPOINT_P(msg.m_source)) {
         case HARDWARE:
         if (msg.m_notify.interrupts & timer_irq_set) {
-          if((counter_t % 2) ==0){
+          timer_int_handler();
+          if((counter_t % 1) ==0){
             clean_RBR();
             write_THR('1');
           }
@@ -252,7 +252,6 @@ int waitingPlayer1(){
   deleteBitmap(menu_back);
 
   if(scanByte == ESC_CODE){
-    printf("Exited with esc\n" );
     return 1;
   }
 
