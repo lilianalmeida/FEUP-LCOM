@@ -233,13 +233,13 @@ void gamePlayer1(){
           if(player1Score == 5){
             drawBitmap(win, 244,236, ALIGN_LEFT);
             doubleBuffCall();
-            sleep(2);
+            sleep(10);
             scanByte = ESC_CODE;
             continue;
           } else if (player2Score == 5){
             drawBitmap(lose, 244,236, ALIGN_LEFT);
             doubleBuffCall();
-            sleep(2);
+            sleep(10);
             scanByte = ESC_CODE;
             continue;
           }
@@ -337,7 +337,6 @@ void gamePlayer1(){
             printf("charRecNumber: %d\n", charRecNumber);
             receivedMov = receivedMov |(charReceived << 0);
             charRecNumber= 0;
-            printTest(receivedMov);
             remoteMoveBall(ball, receivedMov);
           } else{
             printf("Not a ball packet\n" );
@@ -455,13 +454,13 @@ void gamePlayer2(){
           if(player1Score == 5){
             drawBitmap(lose, 244,236, ALIGN_LEFT);
             doubleBuffCall();
-            sleep(2);
+            sleep(10);
             scanByte = ESC_CODE;
             continue;
           } else if (player2Score == 5){
             drawBitmap(win, 244,236,ALIGN_LEFT);
             doubleBuffCall();
-            sleep(2);
+            sleep(10);
             scanByte = ESC_CODE;
             continue;
           }
@@ -480,7 +479,7 @@ void gamePlayer2(){
             ball->x = 90;
             ball->y = 500;
           }
-          if(player2->y < 412){ //Changes the racket hand
+          if(player2->y > 412){ //Changes the racket hand
             player2->bmp = player2Left_bmp;
           }else {
             player2->bmp = player2Right_bmp;
@@ -584,7 +583,6 @@ if(msg.m_notify.interrupts & uart_irq_set){
   } else if(charRecNumber == 1){
     printf("charRecNumber: %d\n", charRecNumber);
     receivedMov = receivedMov |(charReceived << 0);
-    printTest(receivedMov);
     charRecNumber = 0;
     remoteMoveBall(ball, receivedMov);
   } else{

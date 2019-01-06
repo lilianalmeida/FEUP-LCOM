@@ -77,7 +77,7 @@ void resetBallSpeed();
 * Decomposes a 16bit sequence into x and y speed values
 *
 * @param ball Pointer to a ball sprite
-* @param moveCode 16bit sequence that represents the movement received
+* @param movCode 16bit sequence that represents the movement received
 *
 */
 void remoteMoveBall(Sprite * ball, uint16_t movCode);

@@ -30,7 +30,14 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 
-int (proj_main_loop)(int UNUSED(argc), char *UNUSED(argv[])) {
+int (proj_main_loop) (int argc, char* argv[]) {
+
+  if (argc != 1){
+    printf("Wrong number of arguments! It is supposed to be one with the path of the files.");
+    return 1;
+  }
+  strcpy(path, *argv);
+ printf("%s(%d, %c): under construction\n", __func__, argc, *(argv));
 
   sys_enable_iop(SELF);
 

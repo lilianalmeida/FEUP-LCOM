@@ -69,6 +69,8 @@ void deleteNumbers();
 /**
  * @brief Prints the score
  * @param isMulti Set to true if the game mode is multiplayer
+ * @param score1 score of player 1, if in multiplayer mode
+ * @param score2 score of player 2, if in multiplayer mode
  */
  void printPoints(bool isMulti, int score1, int score2);
 
@@ -114,6 +116,9 @@ void setHighscores(int score);
  * @brief Reads the highscores from the highscores text file and prints them in the screen
  */
 void readHighscores();
+
+char* appendPath (char* nameFile, char* abs_path);
+
 /**@}*/
 
 #endif
