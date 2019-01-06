@@ -3,6 +3,8 @@
 
 #include "bitmap.h"
 
+extern char path[50];
+
 /** @defgroup Menus Menus
 * @{
 * Functions for manipulating multiplayer and main menu

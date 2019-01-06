@@ -12,6 +12,8 @@
 #include "rtc.h"
 #include "mouse.h"
 
+char path[50]; //path for all files
+char stringggg[50];
 static int32_t score = 0; //points of the player in the current game
 static Numbers numbers; //struct with the bitmaps of the numbers to be drawn
 static Time_RTC time_rtc; //struct with the date
@@ -320,7 +322,12 @@ int compare( const void* a, const void* b)
 void setHighscores(int score){
 
   FILE *ptr_file;
-  ptr_file = fopen("/home/lcom/labs/proj/Highscores.txt", "r+");
+  char str1[50], str3[50];
+  strcpy (str1, "Highscores.txt");
+  strcpy (str3, path);
+  //char * str3 = (char *) malloc(1 + strlen(path)+ strlen(str1) );
+  strcat(str3, str1);
+  ptr_file = fopen(str3, "r+");
 
   if (ptr_file== NULL){
     printf("Failed to open Highscore.txt\n" );
@@ -366,7 +373,7 @@ void setHighscores(int score){
 
 void readHighscores(){
   FILE *ptr_file;
-  ptr_file = fopen("/home/lcom/labs/proj/Highscores.txt", "r");
+  ptr_file = fopen(appendPath("/Highscores.txt",stringggg), "r");
 
   if (ptr_file== NULL){
     printf("Failed to open Highscore.txt\n" );
@@ -419,3 +426,13 @@ void readHighscores(){
 
   }
 }
+
+
+char* appendPath (char* nameFile, char* abs_path){
+  char str1[50];
+  strcpy (str1, nameFile);
+  strcpy (abs_path, path);
+  strcat(abs_path, str1);
+  return abs_path;
+}
+
