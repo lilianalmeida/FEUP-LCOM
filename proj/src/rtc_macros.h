@@ -7,7 +7,7 @@
  * Constants for programming the RTC
  */
 
-#define BIT(n) 		(0x01 << (n))
+#define BIT(n) 		(1 << (n))
 
 #define RTC_IRQ					8		/**< @brief RTC IRQ line */
 

@@ -7,7 +7,7 @@
  * Constants for programming the serial port
  */
 
-#define BIT(n) 		(0x01 << (n))
+#define BIT(n) 		(1 << (n))
 
 #define COM1_IRQ				4			/**< @brief Serial Port IRQ line */
 
