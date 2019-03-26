@@ -7,7 +7,7 @@
  * Constants for programming the i8042 keyboard and mouse
  */
 
-#define BIT(n) 		(0x01 << (n))
+#define BIT(n) 		(1 << (n))
 
 #define KEYBOARD_IRQ 			1			/**< @brief Keyboard IRQ line */
 

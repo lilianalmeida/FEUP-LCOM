@@ -7,7 +7,7 @@
  * Constants for programming the vbe
  */
 
-#define BIT(n) 		(0x01 << (n))
+#define BIT(n) 		(1 << (n))
 #define PB2BASE(x)	(((x) >> 4) &  0x0F000)	/**< @brief Computes the Base of a Segment */
  
 #define SET_VBE						0x4F02	/**< @brief Set VBE Mode */
